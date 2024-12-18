@@ -1,3 +1,6 @@
+import java.util.*;
+import java.io.*;
+
 public class Value {
 	public double value;
 	public String units;
@@ -36,13 +39,8 @@ public class Value {
 	}
 	
 	public static boolean isValidUnit(String tryUnit) {
-		switch (tryUnit) {
-			case "m":
-			case "mi":
-				return true;
-			default:
-				return false;
-		}
+		String line = getLine(tryUnit);
+		return !(line == null);
 	}
 	
 	public Value getUnitDefinition() {
@@ -52,13 +50,24 @@ public class Value {
 	public static Value getUnitDefinition(String units) {
 		if (!isValidUnit(units))
 			return null;
-		switch (units) {
-			case "m":
-				return new Value(1f, "m");
-			case "mi":
-				return new Value(1609f, "m");
-			default:
-				return null;
-		}
+		String line = getLine(units);
+		String[] def = line.split(" ");
+		return getValue(def[2]);
+	}
+	
+	public static String getLine(String units) {
+		try {
+			File file = new File("Data.txt");
+			Scanner inputFile = new Scanner(file);
+			while (inputFile.hasNext()) {
+				String line = inputFile.nextLine();
+				if (line.startsWith(units)) {
+					inputFile.close();
+					return line;
+				}
+			}
+			inputFile.close();
+		} catch (Exception e) {}
+		return null;
 	}
 }
