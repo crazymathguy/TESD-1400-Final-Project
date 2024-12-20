@@ -39,8 +39,7 @@ public class Value {
 	}
 	
 	public static boolean isValidUnit(String tryUnit) {
-		String line = getLine(tryUnit);
-		return !(line == null);
+		return !(getUnitDefinition(tryUnit) == null);
 	}
 	
 	public Value getUnitDefinition() {
@@ -48,11 +47,27 @@ public class Value {
 	}
 	
 	public static Value getUnitDefinition(String units) {
-		if (!isValidUnit(units))
-			return null;
 		String line = getLine(units);
 		String[] def = line.split(" ");
 		return getValue(def[2]);
+	}
+	
+	public static int getUnitPrefix(String units) {
+		String prefix = units.substring(0, 0);
+		try {
+			File file = new File("PrefixData.txt");
+			Scanner inputFile = new Scanner(file);
+			while (inputFile.hasNext()) {
+				String line = inputFile.nextLine();
+				if (line.startsWith(prefix)) {
+					inputFile.close();
+					int power = Integer.parseInt(line.split(" ")[2]);
+					return 10 ^ power;
+				}
+			}
+			inputFile.close();
+		} catch (Exception e) {}
+		return 1;
 	}
 	
 	public static String getLine(String units) {
