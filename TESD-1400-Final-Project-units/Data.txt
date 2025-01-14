@@ -1,0 +1,12 @@
+m = 1m
+in = 0.0254m
+ft = 0.3048m
+yd = 0.9144m
+mi = 1609.34m
+s = 1s
+min = 60s
+hr = 3600s
+m2 = 1m*m
+m3 = 1m*m*m
+g = 1g
+N = kg*m/s*s
