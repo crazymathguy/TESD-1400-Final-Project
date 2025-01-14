@@ -9,3 +9,5 @@ hr = 3600s
 m2 = 1m*m
 m3 = 1m*m*m
 g = 1g
+kg = 1000g
+N = kg*m/s*s
