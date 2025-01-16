@@ -22,6 +22,9 @@ public class Value {
 				numericalValue += current;
 			}
 		}
+		if (numericalValue == "") {
+			return null;
+		}
 		Value returnValue = new Value(Double.parseDouble(numericalValue), unitsValue);
 		if (!checkTrue) {
 			return returnValue;
@@ -50,16 +53,30 @@ public class Value {
 	}
 	
 	public static Value getUnitDefinition(String units) {
+		int power = 0;
 		String line = getLine(units);
 		if (line == null) {
-			return null;
+			if (units.length() <= 1) {
+				return null;
+			}
+			power = getUnitPrefix(units);
+			if (power == 0) {
+				return null;
+			}
+			units = units.substring(1);
+			line = getLine(units);
+			if (line == null) {
+				return null;
+			}
 		}
 		String[] def = line.split(" ");
-		return getValue(def[2], false);
+		Value returnValue = getValue(def[2], false);
+		returnValue.value *= Math.pow(10, power);
+		return returnValue;
 	}
 	
 	public static int getUnitPrefix(String units) {
-		String prefix = units.substring(0, 0);
+		String prefix = units.substring(0, 1);
 		try {
 			File file = new File("PrefixData.txt");
 			Scanner inputFile = new Scanner(file);
@@ -68,7 +85,7 @@ public class Value {
 				if (line.startsWith(prefix)) {
 					inputFile.close();
 					int power = Integer.parseInt(line.split(" ")[2]);
-					return 10 ^ power;
+					return power;
 				}
 			}
 			inputFile.close();
