@@ -10,7 +10,7 @@ public class Value {
 		this.units = units;
 	}
 	
-	static Value getValue(String stringToParse) {
+	static Value getValue(String stringToParse, boolean checkTrue) {
 		String numericalValue = "";
 		String unitsValue = "";
 		for (int i = 0; i < stringToParse.length(); i++) {
@@ -23,6 +23,9 @@ public class Value {
 			}
 		}
 		Value returnValue = new Value(Double.parseDouble(numericalValue), unitsValue);
+		if (!checkTrue) {
+			return returnValue;
+		}
 		if (returnValue.isValid()) {
 			return returnValue;
 		} else {
@@ -48,8 +51,11 @@ public class Value {
 	
 	public static Value getUnitDefinition(String units) {
 		String line = getLine(units);
+		if (line == null) {
+			return null;
+		}
 		String[] def = line.split(" ");
-		return getValue(def[2]);
+		return getValue(def[2], false);
 	}
 	
 	public static int getUnitPrefix(String units) {

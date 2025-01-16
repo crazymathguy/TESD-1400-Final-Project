@@ -3,10 +3,9 @@ import java.awt.print.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
-		// 1 mile = 1609 m
 		String[] input = getUserInput("Enter a value and a unit to convert it to\n(separated by a space: ex. 4.5mi m)");
 		if (input.length == 2) {
-			Value value = Value.getValue(input[0]);
+			Value value = Value.getValue(input[0], true);
 			if (value == null) {
 				System.out.print("Invalid known value");
 			} else {
@@ -16,8 +15,12 @@ public class ScientificCalculator {
 				if (unitToConvert == null) {
 					System.out.print("Invalid unknown value");
 				} else {
-					Value convertedValue = new Value(siValue.value / unitToConvert.value, unitToConvert.units);
-					printEquation(value, convertedValue);
+					if (siValue.units == unitToConvert.units) {
+						Value convertedValue = new Value(siValue.value / unitToConvert.value, input[1]);
+						printEquation(value, convertedValue);
+					} else {
+						System.out.print("Incompatible units");
+					}
 				}
 			}
 		} else {
