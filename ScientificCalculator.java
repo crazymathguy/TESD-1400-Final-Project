@@ -1,23 +1,26 @@
 import java.util.*;
-import java.awt.print.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
 		String[] input = getUserInput("Enter a value and a unit to convert it to\n(separated by a space: ex. 4.5mi m)");
 		if (input.length == 2) {
-			Value value = Value.getValue(input[0], true);
-			if (value == null) {
+			Value inputValue = Value.getValue(input[0], true);
+			if (inputValue == null) {
 				System.out.print("Invalid known value");
 			} else {
-				Value unitDef = value.getUnitDefinition();
-				Value siValue = new Value(value.value * unitDef.value, unitDef.units);
+				Value unitDef = inputValue.getUnitDefinition();
+				Value siValue = new Value(inputValue.value * unitDef.value, unitDef.units);
 				Value unitToConvert = Value.getUnitDefinition(input[1]);
 				if (unitToConvert == null) {
 					System.out.print("Invalid unknown value");
 				} else {
-					if (siValue.units == unitToConvert.units) {
+					if (siValue.units.equals(unitToConvert.units)) {
 						Value convertedValue = new Value(siValue.value / unitToConvert.value, input[1]);
-						printEquation(value, convertedValue);
+						if (convertedValue.isValid()) {
+							printEquation(inputValue, convertedValue);
+						} else {
+							System.out.print("Something went wrong, please try again.");
+						}
 					} else {
 						System.out.print("Incompatible units");
 					}
