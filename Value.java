@@ -4,10 +4,12 @@ import java.io.*;
 public class Value {
 	public double value;
 	public String units;
+	public int sigFigs;
 	
-	public Value(double value, String units) {
+	public Value(double value, String units, int sigFigs) {
 		this.value = value;
 		this.units = units;
+		this.sigFigs = sigFigs;
 	}
 	
 	static Value getValue(String stringToParse, boolean checkTrue) {
@@ -25,7 +27,8 @@ public class Value {
 		if (numericalValue == "") {
 			return null;
 		}
-		Value returnValue = new Value(Double.parseDouble(numericalValue), unitsValue);
+		int sigFigs = getSigFigs(numericalValue);
+		Value returnValue = new Value(Double.parseDouble(numericalValue), unitsValue, sigFigs);
 		if (!checkTrue) {
 			return returnValue;
 		}
@@ -36,8 +39,9 @@ public class Value {
 		}
 	}
 	
-	public void printValue() {
-		System.out.print(this.value + this.units);
+	public void printValue(boolean withSigFigs) {
+		String printValue = this.formatWithSigFigs();
+		System.out.print(printValue + this.units);
 	}
 	
 	public boolean isValid() {
@@ -107,5 +111,57 @@ public class Value {
 			inputFile.close();
 		} catch (Exception e) {}
 		return null;
+	}
+	
+	public static int getSigFigs(String value) {
+		boolean startZeros = true;
+		boolean hasDecimalPoint = value.contains(".");
+		int sigFigs = 0;
+		int numberOfZeros = 0;
+		for (int i = 0; i < value.length(); i++) {
+			char current = value.charAt(i);
+			if (Character.isDigit(current)) {
+				if (current == '0' && !hasDecimalPoint) {
+					numberOfZeros++;
+				} else {
+					numberOfZeros = 0;
+				}
+				if (!startZeros || current != '0') {
+					startZeros = false;
+					sigFigs++;
+				}
+			}
+		}
+		return sigFigs - numberOfZeros;
+	}
+	
+	public String formatWithSigFigs() {
+		return formatWithSigFigs(this.value, this.sigFigs);
+	}
+	
+	public static String formatWithSigFigs(double value, int sigFigs) {
+		String inputString = Double.toString(value);
+		String formattedString = "";
+		int i = 0;
+		char current = inputString.charAt(0);
+		while (current == '0' || current == '.') {
+			formattedString += current;
+			i++;
+			current = inputString.charAt(i);
+		}
+		int j = i;
+		while (j < sigFigs + i) {
+			if (j > inputString.length()) {
+				formattedString += "0";
+			}  else {
+				formattedString += inputString.charAt(j);
+			}
+			j++;
+		}
+		if (j < inputString.length()) {
+			if (inputString.charAt(j + 1) > '4') {
+				formattedString = formattedString.substring(0, j - 1);
+			}
+		}
 	}
 }
