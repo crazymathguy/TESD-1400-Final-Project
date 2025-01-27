@@ -1,17 +1,24 @@
 import java.util.*;
 import java.io.*;
 
+// Class to handle any physical measurements
 public class Value {
+	// The actual numerical value of the measurement
 	public double value;
+	// The units that the measurement is in
 	public String units;
+	// The number of significant figures (sig figs) in the numerical value
 	public int sigFigs;
 	
+	
+	// Value constructor
 	public Value(double value, String units, int sigFigs) {
 		this.value = value;
 		this.units = units;
 		this.sigFigs = sigFigs;
 	}
 	
+	// Parses a string into a Value (separates the numerical value from the units, and counts sig figs)
 	static Value getValue(String stringToParse, boolean checkTrue) {
 		String numericalValue = "";
 		String unitsValue = "";
@@ -39,15 +46,18 @@ public class Value {
 		}
 	}
 	
+	// prints a Value as a string
 	public void printValue(boolean withSigFigs) {
 		String printValue = this.formatWithSigFigs();
 		System.out.print(printValue + this.units);
 	}
 	
+	// Checks whether this Value is valid
 	public boolean isValid() {
 		return isValidUnit(this.units);
 	}
 	
+	// Check whether the inputted Value has a valid (currently supported) unit
 	public static boolean isValidUnit(String tryUnit) {
 		return !(getUnitDefinition(tryUnit) == null);
 	}
@@ -56,6 +66,7 @@ public class Value {
 		return getUnitDefinition(this.units);
 	}
 	
+	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in a pound)
 	public static Value getUnitDefinition(String units) {
 		int power = 0;
 		String line = getLine(units);
@@ -79,6 +90,7 @@ public class Value {
 		return returnValue;
 	}
 	
+	// determines what prefix the unit has and returns it as the power of ten that it represents (eg. km -> 3, ns -> -9)
 	public static int getUnitPrefix(String units) {
 		String prefix = units.substring(0, 1);
 		try {
@@ -97,9 +109,10 @@ public class Value {
 		return 1;
 	}
 	
+	// finds the line in the UnitData file that matches the given units, no match returns null
 	public static String getLine(String units) {
 		try {
-			File file = new File("Data.txt");
+			File file = new File("UnitData.txt");
 			Scanner inputFile = new Scanner(file);
 			while (inputFile.hasNext()) {
 				String line = inputFile.nextLine();
@@ -113,6 +126,7 @@ public class Value {
 		return null;
 	}
 	
+	// calculates the number of significant figures
 	public static int getSigFigs(String value) {
 		boolean startZeros = true;
 		boolean hasDecimalPoint = value.contains(".");
@@ -139,29 +153,47 @@ public class Value {
 		return formatWithSigFigs(this.value, this.sigFigs);
 	}
 	
+	// returns this Value as a string with the correct number of sig figs (rounds to sig figs or adds trailing 0s)
 	public static String formatWithSigFigs(double value, int sigFigs) {
 		String inputString = Double.toString(value);
 		String formattedString = "";
+		boolean decimalPoint = false;
+		sigFigs--;
 		int i = 0;
 		char current = inputString.charAt(0);
 		while (current == '0' || current == '.') {
 			formattedString += current;
+			if (current == '.') {
+				sigFigs++;
+				decimalPoint = true;
+			}
 			i++;
 			current = inputString.charAt(i);
 		}
+		// System.out.println(i);
 		int j = i;
 		while (j < sigFigs + i) {
-			if (j > inputString.length()) {
+			if (j > inputString.length() - 1) {
 				formattedString += "0";
 			}  else {
 				formattedString += inputString.charAt(j);
+				if (inputString.charAt(j) == '.') {
+					sigFigs++;
+					decimalPoint = true;
+				}
 			}
 			j++;
 		}
-		if (j < inputString.length()) {
+		j--;
+		System.out.println(inputString.length() - 1 + " -> " + inputString.charAt(inputString.length() - 1));
+		System.out.println(j);
+		if (j < inputString.length() - 1) {
+			// test System.out.println(inputString.charAt(j + 1) - '4');
 			if (inputString.charAt(j + 1) > '4') {
 				formattedString = formattedString.substring(0, j - 1);
+				formattedString += inputString.charAt(j) + 1;
 			}
 		}
+		return formattedString;
 	}
 }

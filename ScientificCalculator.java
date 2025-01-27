@@ -2,7 +2,12 @@ import java.util.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
-		String[] input = getUserInput("Enter a value and a unit to convert it to\n(separated by a space: ex. 4.5mi m)");
+		String[] input = {};
+		// String[] input = getUserInput("Enter a value and a unit to convert it to\n(separated by a space: ex. 4.5mi m)");
+		
+		// Sig figs test
+		System.out.print(Value.formatWithSigFigs(0.015209, 4));
+		// end test
 		
 		if (input.length == 2) {
 			Value inputValue = Value.getValue(input[0], true);
@@ -28,7 +33,7 @@ public class ScientificCalculator {
 				}
 			}
 		} else {
-			System.out.print("Invalid equation");
+			// System.out.print("Invalid equation");
 		}
 		
 		/* for (int i = 0; i < input.length; i++) {
@@ -37,6 +42,7 @@ public class ScientificCalculator {
 		} */
 	}
 	
+	// Obtains user input
 	static String[] getUserInput(String message) {
 		Scanner input = new Scanner(System.in);
 		System.out.println(message);
@@ -44,6 +50,7 @@ public class ScientificCalculator {
 		return line.split(" ");
 	}
 	
+	// Prints output of unit conversion calculations
 	static void printEquation(Value known, Value unknown, boolean withSigFigs) {
 		known.printValue(withSigFigs);
 		System.out.print(" = ");
