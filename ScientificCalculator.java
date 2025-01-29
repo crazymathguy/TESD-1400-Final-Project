@@ -6,7 +6,7 @@ public class ScientificCalculator {
 		// String[] input = getUserInput("Enter a value and a unit to convert it to\n(separated by a space: ex. 4.5mi m)");
 		
 		// Sig figs test
-		System.out.print(Value.formatWithSigFigs(0.015209, 4));
+		System.out.print(Value.formatWithSigFigs(25.8207, 1));
 		// end test
 		
 		if (input.length == 2) {

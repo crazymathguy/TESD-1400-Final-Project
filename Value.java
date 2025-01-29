@@ -153,46 +153,61 @@ public class Value {
 		return formatWithSigFigs(this.value, this.sigFigs);
 	}
 	
-	// returns this Value as a string with the correct number of sig figs (rounds to sig figs or adds trailing 0s)
+	// returns this Value as a string with the correct number of sig figs (rounds to number of sig figs or adds trailing 0s)
 	public static String formatWithSigFigs(double value, int sigFigs) {
+		if (sigFigs < 1) {
+			return null;
+		}
 		String inputString = Double.toString(value);
 		String formattedString = "";
 		boolean decimalPoint = false;
-		sigFigs--;
+		int decimalDigits = 0;
+		// sigFigs--;
 		int i = 0;
 		char current = inputString.charAt(0);
 		while (current == '0' || current == '.') {
 			formattedString += current;
 			if (current == '.') {
-				sigFigs++;
+				// sigFigs++;
 				decimalPoint = true;
+			} else if (decimalPoint) {
+				decimalDigits++;
 			}
 			i++;
 			current = inputString.charAt(i);
 		}
 		// System.out.println(i);
 		int j = i;
-		while (j < sigFigs + i) {
+		while (sigFigs > 0) {
 			if (j > inputString.length() - 1) {
 				formattedString += "0";
-			}  else {
+			} else {
 				formattedString += inputString.charAt(j);
 				if (inputString.charAt(j) == '.') {
 					sigFigs++;
 					decimalPoint = true;
 				}
 			}
+			if (decimalPoint) {
+				decimalDigits++;
+			}
 			j++;
+			sigFigs--;
 		}
 		j--;
-		System.out.println(inputString.length() - 1 + " -> " + inputString.charAt(inputString.length() - 1));
-		System.out.println(j);
+		// test System.out.println(inputString.length() - 1 + " -> " + inputString.charAt(inputString.length() - 1));
+		System.out.println(j + " " + decimalDigits);
+		// end test
 		if (j < inputString.length() - 1) {
-			// test System.out.println(inputString.charAt(j + 1) - '4');
+			formattedString = Double.toString(Math.round(value * (Math.pow(10, decimalDigits))) / Math.pow(10, decimalDigits));
+			
+			/* System.out.println(inputString.charAt(j + 1) - '4');
 			if (inputString.charAt(j + 1) > '4') {
-				formattedString = formattedString.substring(0, j - 1);
+				System.out.println(formattedString.substring(0, j));
+				formattedString = formattedString.substring(0, j);
+				System.out.println(inputString.charAt(j));
 				formattedString += inputString.charAt(j) + 1;
-			}
+			} */
 		}
 		return formattedString;
 	}
