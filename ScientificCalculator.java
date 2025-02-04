@@ -2,19 +2,7 @@ import java.util.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
-		// String[] input = {};
 		String[] input = getUserInput("Enter a value and a unit to convert it to\n(separated by a space: ex. 4.5mi m)");
-		
-		// Sig figs test
-		/* System.out.println(Value.formatWithSigFigs(8725.8207, 10));
-		System.out.println(Value.formatWithSigFigs(500., 1));
-		System.out.println(Value.formatWithSigFigs(500., 3));
-		System.out.println(Value.formatWithSigFigs(500., 5));
-		System.out.println(Value.formatWithSigFigs(.032, 1));
-		System.out.println(Value.formatWithSigFigs(.032, 2));
-		System.out.println(Value.formatWithSigFigs(.032, 4));
-		System.out.println(Value.formatWithSigFigs(8725.8207, 4));
-		// end test */
 		
 		if (input.length == 2) {
 			Value inputValue = Value.getValue(input[0], true);
@@ -40,13 +28,8 @@ public class ScientificCalculator {
 				}
 			}
 		} else {
-			// System.out.print("Invalid equation");
+			System.out.print("Invalid equation");
 		}
-		
-		/* for (int i = 0; i < input.length; i++) {
-			Value value = getValue(input[i]);
-			System.out.println(value.value + " " + value.units);
-		} */
 	}
 	
 	// Obtains user input
@@ -63,6 +46,4 @@ public class ScientificCalculator {
 		System.out.print(" = ");
 		unknown.printValue(withSigFigs);
 	}
-	
-	//static void getSigFigs(String)
 }

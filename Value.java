@@ -182,7 +182,6 @@ public class Value {
 			i++;
 			current = inputString.charAt(i);
 		}
-		// System.out.println(i);
 		int j = i;
 		while (sigFigs > 0) {
 			if (j > inputString.length() - 1) {
@@ -210,24 +209,12 @@ public class Value {
 				decimalDigits--;
 			}
 		}
-		// test
-		// System.out.println(inputString.length() - 1 + " -> " + inputString.charAt(inputString.length() - 1));
-		// System.out.println(sigFigs + " " + j + " " + decimalDigits);
-		// end test
 		if (j < inputString.length() - 1) {
 			if (decimalDigits < 1) {
 				formattedString = Long.toString(Math.round(value / (Math.pow(10, -decimalDigits))) * (long) Math.pow(10, -decimalDigits));
 			} else {
 				formattedString = Double.toString(Math.round(value * (Math.pow(10, decimalDigits))) / Math.pow(10, decimalDigits));
 			}
-			
-			/* System.out.println(inputString.charAt(j + 1) - '4');
-			if (inputString.charAt(j + 1) > '4') {
-				System.out.println(formattedString.substring(0, j));
-				formattedString = formattedString.substring(0, j);
-				System.out.println(inputString.charAt(j));
-				formattedString += inputString.charAt(j) + 1;
-			} */
 		}
 		return formattedString;
 	}
