@@ -91,6 +91,9 @@ public class Value {
 		}
 		String[] def = line.split(" ");
 		Value returnValue = getValue(def[2], false);
+		if (!(def[2].contains("."))) {
+			returnValue.sigFigs = Integer.MAX_VALUE;
+		}
 		returnValue.value *= Math.pow(10, power);
 		return returnValue;
 	}
@@ -167,13 +170,11 @@ public class Value {
 		String formattedString = "";
 		boolean decimalPoint = false;
 		int decimalDigits = 0;
-		// sigFigs--;
 		int i = 0;
 		char current = inputString.charAt(0);
 		while (current == '0' || current == '.') {
 			formattedString += current;
 			if (current == '.') {
-				// sigFigs++;
 				decimalPoint = true;
 			} else if (decimalPoint) {
 				decimalDigits++;
@@ -191,6 +192,7 @@ public class Value {
 				if (inputString.charAt(j) == '.') {
 					sigFigs++;
 					decimalPoint = true;
+					decimalDigits = -1;
 				}
 			}
 			if (decimalPoint) {
@@ -209,8 +211,8 @@ public class Value {
 			}
 		}
 		// test
-		System.out.println(inputString.length() - 1 + " -> " + inputString.charAt(inputString.length() - 1));
-		System.out.println(sigFigs + " " + j + " " + decimalDigits);
+		// System.out.println(inputString.length() - 1 + " -> " + inputString.charAt(inputString.length() - 1));
+		// System.out.println(sigFigs + " " + j + " " + decimalDigits);
 		// end test
 		if (j < inputString.length() - 1) {
 			if (decimalDigits < 1) {
