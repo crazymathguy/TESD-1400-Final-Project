@@ -2,7 +2,11 @@ import java.util.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
-		String[] input = getUserInput("Enter a value and a unit to convert it to\n(separated by a space: ex. 4.5mi m)");
+		SingleConversion();
+	}
+	
+	public static void SingleConversion() {
+		String[] input = getUserInput("Enter a value and a unit to convert it to\n(separated by a space: eg. 4.5mi m)");
 		
 		if (input.length == 2) {
 			Value inputValue = Value.getValue(input[0], true);
@@ -18,7 +22,7 @@ public class ScientificCalculator {
 					if (siValue.units.equals(unitToConvert.units)) {
 						Value convertedValue = new Value(siValue.value / unitToConvert.value, input[1], Math.min(siValue.sigFigs, unitToConvert.sigFigs));
 						if (convertedValue.isValid()) {
-							printEquation(inputValue, convertedValue, true);
+							printConversionEquation(inputValue, convertedValue, true);
 						} else {
 							System.out.print("Something went wrong, please try again.");
 						}
@@ -32,6 +36,19 @@ public class ScientificCalculator {
 		}
 	}
 	
+	// Manipulates motion data
+	static void Kinematics() {
+		// String[] input = getUserInput("Motion data: Enter an unknown and as much given information as possible\n(separated by spaces: eg. Dx ");
+		Scanner input = new Scanner(System.in);
+		System.out.println("Motion data: Enter your unknown variable (for help, press 1)");
+		String unknown = input.nextLine();
+		if (unknown.equals("1")) {
+			printHelp();
+			Kinematics();
+			return;
+		}
+	}
+	
 	// Obtains user input
 	static String[] getUserInput(String message) {
 		Scanner input = new Scanner(System.in);
@@ -40,10 +57,26 @@ public class ScientificCalculator {
 		return line.split(" ");
 	}
 	
+	// Manipulates equations to isolate unknowns
+	static String[] AlgebraEquations() {
+		String[] equation = {"m", "s"};
+		return equation;
+	}
+	
 	// Prints output of unit conversion calculations
-	static void printEquation(Value known, Value unknown, boolean withSigFigs) {
+	static void printConversionEquation(Value known, Value unknown, boolean withSigFigs) {
 		known.printValue(withSigFigs);
 		System.out.print(" = ");
 		unknown.printValue(withSigFigs);
+	}
+	
+	// Prints help for kinematics
+	static void printHelp() {
+		System.out.println("Motion variables");
+		System.out.println("Dx = delta x = change in position");
+		System.out.println("V = velocity = speed + direction (usually direction is ignored)");
+		System.out.println("Vi = initial velocity, Vf = final velocity");
+		System.out.println("Dt = delta t = change in time (amount of time passed)");
+		System.out.println("a = acceleration = change in velocity");
 	}
 }
