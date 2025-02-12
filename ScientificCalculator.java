@@ -39,13 +39,43 @@ public class ScientificCalculator {
 	// Manipulates motion data
 	static void Kinematics() {
 		// String[] input = getUserInput("Motion data: Enter an unknown and as much given information as possible\n(separated by spaces: eg. Dx ");
+		byte variablesUsed = 0;
+		String[] variables = {"Xi", "Xf", "Dx", "Vi", "Vf", "V", "Dt", "a"};
 		Scanner input = new Scanner(System.in);
-		System.out.println("Motion data: Enter your unknown variable (for help, press 1)");
+		System.out.println("Motion data: Enter your unknown variable, then your known variables (for help, press 1)");
 		String unknown = input.nextLine();
 		if (unknown.equals("1")) {
 			printHelp();
 			Kinematics();
 			return;
+		} else if (validVariable(unknown, variables)) {
+			Value[] values = new Value[variables.length];
+			for (int i = 0; i < values.length; i++) {
+				if (unknown.equals(variables[i])) {
+					variablesUsed |= (1 << i);
+					values[i] = null;
+					continue;
+				}
+				System.out.println(variables[i] + ":");
+				String field = input.next();
+				if (field.equals("")) {
+					values[i] = null;
+				} else {
+					values[i] = Value.getValue(field, true);
+					if (values[i] != null) {
+						variablesUsed |= (1 << i);
+					}
+				}
+			}
+			if (variablesUsed == 44) {
+				// Dx = V/Dt
+			}
+			if (variablesUsed == 27) {
+				// Vf = Vi + aDt
+			}
+			if (variablesUsed == 211) {
+				// Xf = Xi + ViDt + a(Dt)2/2
+			}
 		}
 	}
 	
@@ -72,11 +102,23 @@ public class ScientificCalculator {
 	
 	// Prints help for kinematics
 	static void printHelp() {
-		System.out.println("Motion variables");
+		System.out.println("Motion variables:");
+		System.out.println("Xi = initial position, Xf = final position");
 		System.out.println("Dx = delta x = change in position");
 		System.out.println("V = velocity = speed + direction (usually direction is ignored)");
 		System.out.println("Vi = initial velocity, Vf = final velocity");
 		System.out.println("Dt = delta t = change in time (amount of time passed)");
 		System.out.println("a = acceleration = change in velocity");
+		System.out.println("if you do not have data for a given field, leave it blank");
+	}
+	
+	// Determines if a variable is valid
+	static boolean validVariable(String variable, String[] validVariables) {
+		for (String i : validVariables) {
+			if (variable.equals(i)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
