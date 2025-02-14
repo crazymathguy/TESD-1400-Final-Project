@@ -1,2 +1,3 @@
+g = 9.81m/s*s
 R = 0.082058L*atm/mol*K
-NA = 6.022e23
+NA = 6.022e23molecule/mol

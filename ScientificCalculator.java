@@ -2,7 +2,8 @@ import java.util.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
-		SingleConversion();
+		// SingleConversion();
+		Kinematics();
 	}
 	
 	public static void SingleConversion() {
@@ -56,8 +57,8 @@ public class ScientificCalculator {
 					values[i] = null;
 					continue;
 				}
-				System.out.println(variables[i] + ":");
-				String field = input.next();
+				System.out.println(variables[i] + ": ");
+				String field = input.nextLine();
 				if (field.equals("")) {
 					values[i] = null;
 				} else {
@@ -67,14 +68,19 @@ public class ScientificCalculator {
 					}
 				}
 			}
-			if (variablesUsed == 44) {
-				// Dx = V/Dt
-			}
-			if (variablesUsed == 27) {
-				// Vf = Vi + aDt
-			}
-			if (variablesUsed == 211) {
-				// Xf = Xi + ViDt + a(Dt)2/2
+			System.out.println(variablesUsed);
+			if (variablesUsed == 224) {
+				System.out.println("Dx = Xf - Xi");
+			} else if (variablesUsed == 44) {
+				System.out.println("V = Dx/Dt");
+			} else if (variablesUsed == 27) {
+				System.out.println("a = (Vf - Vi)/Dt");
+			} else if (variablesUsed == 211) {
+				System.out.println("Xf = Xi + ViDt + a(Dt)2/2");
+			} else if (variablesUsed == 57) {
+				System.out.println("Vf2 = Vi2 + 2aDx");
+			} else {
+				System.out.println("Not enough information");
 			}
 		}
 	}
@@ -109,7 +115,7 @@ public class ScientificCalculator {
 		System.out.println("Vi = initial velocity, Vf = final velocity");
 		System.out.println("Dt = delta t = change in time (amount of time passed)");
 		System.out.println("a = acceleration = change in velocity");
-		System.out.println("if you do not have data for a given field, leave it blank");
+		System.out.println("if you do not have data for a given field, add a space and leave it blank");
 	}
 	
 	// Determines if a variable is valid
