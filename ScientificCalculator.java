@@ -1,4 +1,5 @@
 import java.util.*;
+import javax.lang.model.element.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
@@ -40,8 +41,9 @@ public class ScientificCalculator {
 	// Manipulates motion data
 	static void Kinematics() {
 		// String[] input = getUserInput("Motion data: Enter an unknown and as much given information as possible\n(separated by spaces: eg. Dx ");
-		byte variablesUsed = 0;
-		String[] variables = {"Xi", "Xf", "Dx", "Vi", "Vf", "V", "Dt", "a"};
+		int variablesUsed = 0;
+		int unknownVariable = 0;
+		String[] variables = {"Xi", "Xf", "Dx", "Vi", "Vf", "Dv", "v", "Dt", "a"};
 		Scanner input = new Scanner(System.in);
 		System.out.println("Motion data: Enter your unknown variable, then your known variables (for help, press 1)");
 		String unknown = input.nextLine();
@@ -54,6 +56,7 @@ public class ScientificCalculator {
 			for (int i = 0; i < values.length; i++) {
 				if (unknown.equals(variables[i])) {
 					variablesUsed |= (1 << i);
+					unknownVariable = (1 << i);
 					values[i] = null;
 					continue;
 				}
@@ -68,20 +71,19 @@ public class ScientificCalculator {
 					}
 				}
 			}
-			System.out.println(variablesUsed);
-			if (variablesUsed == 224) {
-				System.out.println("Dx = Xf - Xi");
-			} else if (variablesUsed == 44) {
-				System.out.println("V = Dx/Dt");
-			} else if (variablesUsed == 27) {
-				System.out.println("a = (Vf - Vi)/Dt");
-			} else if (variablesUsed == 211) {
-				System.out.println("Xf = Xi + ViDt + a(Dt)2/2");
-			} else if (variablesUsed == 57) {
-				System.out.println("Vf2 = Vi2 + 2aDx");
-			} else {
-				System.out.println("Not enough information");
+			int[] equationVariables = {0b000000111, 0b011000011, 0b011000100, 0b000111000, 0b110011000, 0b110100000, 0b110001011, 0b110001100, 0b100011100, 0b100011011};
+			String[] equations = {"Dx = Xf - Xi", "v = (Xf - Xi)/Dt", "v = Dx/Dt", "Dv = Vf - Vi", "a = (Vf - Vi)/Dt", "a = Dv/Dt", "Xf = Xi + ViDt + a(Dt)2/2", "Dx = ViDt + a(Dt)2/2", "Vf2 = Vi2 + 2aDx", "Vf2 = Vi2 + 2a(Xf - Xi)"};
+			for (int i = 0; i < equations.length; i++) {
+				// if the variablesUsed contains at least the necessary components and the equation contains the unknown variable
+				if ((variablesUsed & equationVariables[i]) == equationVariables[i] && (unknownVariable & equationVariables[i]) > 0) {
+					System.out.println(equations[i]);
+					Value answer = AlgebraEquations(equations[i], unknown, values);
+					answer.printValue(true);
+					return;
+				}
 			}
+			System.out.println("Not enough information");
+			// Kinematics();
 		}
 	}
 	
@@ -94,9 +96,9 @@ public class ScientificCalculator {
 	}
 	
 	// Manipulates equations to isolate unknowns
-	static String[] AlgebraEquations() {
-		String[] equation = {"m", "s"};
-		return equation;
+	static Value AlgebraEquations(String equation, String unknown, Value[] values) {
+		Value unknownValue = new Value(0, "", 1);
+		return unknownValue;
 	}
 	
 	// Prints output of unit conversion calculations
@@ -111,10 +113,11 @@ public class ScientificCalculator {
 		System.out.println("Motion variables:");
 		System.out.println("Xi = initial position, Xf = final position");
 		System.out.println("Dx = delta x = change in position");
-		System.out.println("V = velocity = speed + direction (usually direction is ignored)");
+		System.out.println("v = velocity = speed + direction (usually direction is ignored)");
 		System.out.println("Vi = initial velocity, Vf = final velocity");
+		System.out.println("Dv = delta v = change in velocity");
 		System.out.println("Dt = delta t = change in time (amount of time passed)");
-		System.out.println("a = acceleration = change in velocity");
+		System.out.println("a = acceleration = change in velocity per unit time");
 		System.out.println("if you do not have data for a given field, add a space and leave it blank");
 	}
 	
