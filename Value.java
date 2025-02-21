@@ -74,7 +74,14 @@ public class Value {
 	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in a pound)
 	public static Value getUnitDefinition(String units) {
 		int power = 0;
-		String line = getLine(units);
+		String line;
+		String[] unitsDivision = units.split("/");
+		String[][] splitUnits = new String[unitsDivision.length][];
+		for (int i = 0; i < unitsDivision.length; i++) {
+			splitUnits[i] = unitsDivision[i].split("*");
+		}
+		
+		line = getLine(units);
 		if (line == null) {
 			if (units.length() <= 1) {
 				return null;
@@ -180,7 +187,9 @@ public class Value {
 				decimalDigits++;
 			}
 			i++;
-			current = inputString.charAt(i);
+			if (i < inputString.length()) {
+				current = inputString.charAt(i);
+			}
 		}
 		int j = i;
 		while (sigFigs > 0) {

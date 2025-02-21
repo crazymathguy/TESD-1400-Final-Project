@@ -78,12 +78,13 @@ public class ScientificCalculator {
 				if ((variablesUsed & equationVariables[i]) == equationVariables[i] && (unknownVariable & equationVariables[i]) > 0) {
 					System.out.println(equations[i]);
 					Value answer = AlgebraEquations(equations[i], unknown, values);
+					System.out.print(unknown + " = ");
 					answer.printValue(true);
 					return;
 				}
 			}
 			System.out.println("Not enough information");
-			// Kinematics();
+			Kinematics();
 		}
 	}
 	
@@ -97,8 +98,8 @@ public class ScientificCalculator {
 	
 	// Manipulates equations to isolate unknowns
 	static Value AlgebraEquations(String equation, String unknown, Value[] values) {
-		Value unknownValue = new Value(0, "", 1);
-		return unknownValue;
+		Value answer = new Value(1, "m/s*s", 1);
+		return answer;
 	}
 	
 	// Prints output of unit conversion calculations
@@ -112,7 +113,7 @@ public class ScientificCalculator {
 	static void printHelp() {
 		System.out.println("Motion variables:");
 		System.out.println("Xi = initial position, Xf = final position");
-		System.out.println("Dx = delta x = change in position");
+		System.out.println("Dx = delta x = change in position or distance traveled");
 		System.out.println("v = velocity = speed + direction (usually direction is ignored)");
 		System.out.println("Vi = initial velocity, Vf = final velocity");
 		System.out.println("Dv = delta v = change in velocity");
