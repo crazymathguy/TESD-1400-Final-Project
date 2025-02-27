@@ -1,5 +1,6 @@
 import java.util.*;
 import java.io.*;
+import javax.lang.model.type.*;
 
 // Class to handle any physical measurements
 public class Value {
@@ -73,14 +74,39 @@ public class Value {
 	
 	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in a pound)
 	public static Value getUnitDefinition(String units) {
-		int power = 0;
-		String line;
+		if (!(units.contains("/") || units.contains("*"))) {
+			return getSingleUnitDefinition(units);
+		}
+		Value definition = new Value(1, "", Integer.MAX_VALUE);
 		String[] unitsDivision = units.split("/");
 		String[][] splitUnits = new String[unitsDivision.length][];
 		for (int i = 0; i < unitsDivision.length; i++) {
 			splitUnits[i] = unitsDivision[i].split("*");
 		}
+		Value singleUnitValue;
+		for (String currentUnit : splitUnits[0]) {
+			singleUnitValue = getSingleUnitDefinition(currentUnit);
+			definition.value *= singleUnitValue.value;
+			definition.units += singleUnitValue.units + "*";
+			definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
+		}
+		definition.units = definition.units.substring(0, definition.units.length() - 2);
+		for (int dividedUnits = 1; dividedUnits < splitUnits.length; dividedUnits++) {
+			definition.units += "/";
+			for (String currentUnit : splitUnits[dividedUnits]) {
+				singleUnitValue = getSingleUnitDefinition(currentUnit);
+				definition.value /= singleUnitValue.value;
+				definition.units += singleUnitValue.units + "*";
+				definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
+			}
+			definition.units = definition.units.substring(0, definition.units.length() - 2);
+		}
+		return definition;
+	}
 		
+	public static Value getSingleUnitDefinition(String units) {
+		String line;
+		int power = 0;
 		line = getLine(units);
 		if (line == null) {
 			if (units.length() <= 1) {

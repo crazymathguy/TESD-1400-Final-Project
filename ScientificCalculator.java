@@ -4,7 +4,9 @@ import javax.lang.model.element.*;
 public class ScientificCalculator {
 	public static void main(String[] args) {
 		// SingleConversion();
-		Kinematics();
+		// Kinematics();
+		Value value = Value.getValue("28.4003kg*m/s*min", true);
+		System.out.print(Value.getUnitDefinition("28.4003kg*m/s*min"));
 	}
 	
 	public static void SingleConversion() {
@@ -119,7 +121,7 @@ public class ScientificCalculator {
 		System.out.println("Dv = delta v = change in velocity");
 		System.out.println("Dt = delta t = change in time (amount of time passed)");
 		System.out.println("a = acceleration = change in velocity per unit time");
-		System.out.println("if you do not have data for a given field, add a space and leave it blank");
+		System.out.println("if you do not have data for a given field, leave it blank and press enter");
 	}
 	
 	// Determines if a variable is valid
