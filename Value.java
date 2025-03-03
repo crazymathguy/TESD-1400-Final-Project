@@ -20,12 +20,12 @@ public class Value {
 	}
 	
 	// Parses a string into a Value (separates the numerical value from the units, and counts sig figs)
-	static Value getValue(String stringToParse, boolean checkTrue) {
+	static Value getValue(String stringToParse, boolean checkValid) {
 		String numericalValue = "";
 		String unitsValue = "";
 		for (int i = 0; i < stringToParse.length(); i++) {
 			char current = stringToParse.charAt(i);
-			if (Character.isLetter(current)) {
+			if (Character.isLetter(current) || current == '*' || current == '/') {
 				unitsValue += current;
 			}
 			else if (Character.isDigit(current) || current == '.') {
@@ -37,7 +37,7 @@ public class Value {
 		}
 		int sigFigs = getSigFigs(numericalValue);
 		Value returnValue = new Value(Double.parseDouble(numericalValue), unitsValue, sigFigs);
-		if (!checkTrue) {
+		if (!checkValid) {
 			return returnValue;
 		}
 		if (returnValue.isValid()) {
@@ -81,11 +81,13 @@ public class Value {
 		String[] unitsDivision = units.split("/");
 		String[][] splitUnits = new String[unitsDivision.length][];
 		for (int i = 0; i < unitsDivision.length; i++) {
-			splitUnits[i] = unitsDivision[i].split("*");
+			splitUnits[i] = unitsDivision[i].split("\\*");
 		}
-		Value singleUnitValue;
 		for (String currentUnit : splitUnits[0]) {
-			singleUnitValue = getSingleUnitDefinition(currentUnit);
+			Value singleUnitValue = getSingleUnitDefinition(currentUnit);
+			if (singleUnitValue == null) {
+				return null;
+			}
 			definition.value *= singleUnitValue.value;
 			definition.units += singleUnitValue.units + "*";
 			definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
@@ -94,7 +96,10 @@ public class Value {
 		for (int dividedUnits = 1; dividedUnits < splitUnits.length; dividedUnits++) {
 			definition.units += "/";
 			for (String currentUnit : splitUnits[dividedUnits]) {
-				singleUnitValue = getSingleUnitDefinition(currentUnit);
+				Value singleUnitValue = getSingleUnitDefinition(currentUnit);
+				if (singleUnitValue == null) {
+					return null;
+				}
 				definition.value /= singleUnitValue.value;
 				definition.units += singleUnitValue.units + "*";
 				definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);

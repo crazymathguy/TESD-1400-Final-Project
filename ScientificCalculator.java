@@ -6,7 +6,9 @@ public class ScientificCalculator {
 		// SingleConversion();
 		// Kinematics();
 		Value value = Value.getValue("28.4003kg*m/s*min", true);
-		System.out.print(Value.getUnitDefinition("28.4003kg*m/s*min"));
+		Value def = value.getUnitDefinition();
+		System.out.println(def.sigFigs);
+		System.out.println(def.formatWithSigFigs());
 	}
 	
 	public static void SingleConversion() {
@@ -47,7 +49,7 @@ public class ScientificCalculator {
 		int unknownVariable = 0;
 		String[] variables = {"Xi", "Xf", "Dx", "Vi", "Vf", "Dv", "v", "Dt", "a"};
 		Scanner input = new Scanner(System.in);
-		System.out.println("Motion data: Enter your unknown variable, then your known variables (for help, press 1)");
+		System.out.println("Motion data: Enter your unknown variable, then your known variables (for help, enter 1)");
 		String unknown = input.nextLine();
 		if (unknown.equals("1")) {
 			printHelp();
