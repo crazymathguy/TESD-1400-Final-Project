@@ -5,10 +5,10 @@ public class ScientificCalculator {
 	public static void main(String[] args) {
 		// SingleConversion();
 		// Kinematics();
-		Value value = Value.getValue("28.4003kg*m/s*min", true);
+		Value value = Value.getValue("10.183N*s", true);
 		Value def = value.getUnitDefinition();
-		System.out.println(def.sigFigs);
-		System.out.println(def.formatWithSigFigs());
+		def.printValue(true);
+		// System.out.println(def.formatWithSigFigs());
 	}
 	
 	public static void SingleConversion() {
@@ -21,7 +21,7 @@ public class ScientificCalculator {
 			} else {
 				Value unitDef = inputValue.getUnitDefinition();
 				Value siValue = new Value(inputValue.value * unitDef.value, unitDef.units, Math.min(inputValue.sigFigs, unitDef.sigFigs));
-				Value unitToConvert = Value.getUnitDefinition(input[1]);
+				Value unitToConvert = Value.getUnitDefinition(input[1], inputValue.sigFigs);
 				if (unitToConvert == null) {
 					System.out.print("Invalid unknown value");
 				} else {

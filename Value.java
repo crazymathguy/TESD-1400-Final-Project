@@ -65,26 +65,26 @@ public class Value {
 	
 	// Check whether the inputted Value has a valid (currently supported) unit
 	public static boolean isValidUnit(String tryUnit) {
-		return !(getUnitDefinition(tryUnit) == null);
+		return !(getUnitDefinition(tryUnit, 1) == null);
 	}
 	
 	public Value getUnitDefinition() {
-		return getUnitDefinition(this.units);
+		return getUnitDefinition(this.units, this.sigFigs);
 	}
 	
-	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in a pound)
-	public static Value getUnitDefinition(String units) {
+	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in 5 pounds)
+	public static Value getUnitDefinition(String units, int origSigFigs) {
 		if (!(units.contains("/") || units.contains("*"))) {
-			return getSingleUnitDefinition(units);
+			return getSingleUnitDefinition(units, origSigFigs);
 		}
-		Value definition = new Value(1, "", Integer.MAX_VALUE);
+		Value definition = new Value(1, "", origSigFigs);
 		String[] unitsDivision = units.split("/");
 		String[][] splitUnits = new String[unitsDivision.length][];
 		for (int i = 0; i < unitsDivision.length; i++) {
 			splitUnits[i] = unitsDivision[i].split("\\*");
 		}
 		for (String currentUnit : splitUnits[0]) {
-			Value singleUnitValue = getSingleUnitDefinition(currentUnit);
+			Value singleUnitValue = getSingleUnitDefinition(currentUnit, origSigFigs);
 			if (singleUnitValue == null) {
 				return null;
 			}
@@ -92,11 +92,11 @@ public class Value {
 			definition.units += singleUnitValue.units + "*";
 			definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
 		}
-		definition.units = definition.units.substring(0, definition.units.length() - 2);
+		definition.units = definition.units.substring(0, definition.units.length() - 1);
 		for (int dividedUnits = 1; dividedUnits < splitUnits.length; dividedUnits++) {
 			definition.units += "/";
 			for (String currentUnit : splitUnits[dividedUnits]) {
-				Value singleUnitValue = getSingleUnitDefinition(currentUnit);
+				Value singleUnitValue = getSingleUnitDefinition(currentUnit,  origSigFigs);
 				if (singleUnitValue == null) {
 					return null;
 				}
@@ -104,12 +104,12 @@ public class Value {
 				definition.units += singleUnitValue.units + "*";
 				definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
 			}
-			definition.units = definition.units.substring(0, definition.units.length() - 2);
+			definition.units = definition.units.substring(0, definition.units.length() - 1);
 		}
 		return definition;
 	}
 		
-	public static Value getSingleUnitDefinition(String units) {
+	public static Value getSingleUnitDefinition(String units, int origSigFigs) {
 		String line;
 		int power = 0;
 		line = getLine(units);
@@ -130,7 +130,7 @@ public class Value {
 		String[] def = line.split(" ");
 		Value returnValue = getValue(def[2], false);
 		if (!(def[2].contains("."))) {
-			returnValue.sigFigs = Integer.MAX_VALUE;
+			returnValue.sigFigs = origSigFigs;
 		}
 		returnValue.value *= Math.pow(10, power);
 		return returnValue;
@@ -203,6 +203,9 @@ public class Value {
 	public static String formatWithSigFigs(double value, int sigFigs) {
 		if (sigFigs < 1) {
 			return null;
+		}
+		if (sigFigs == Integer.MAX_VALUE) {
+			
 		}
 		String inputString = Double.toString(value);
 		String formattedString = "";
