@@ -65,15 +65,15 @@ public class Value {
 	
 	// Check whether the inputted Value has a valid (currently supported) unit
 	public static boolean isValidUnit(String tryUnit) {
-		return !(getUnitDefinition(tryUnit, 1) == null);
+		return !(getUnitDefinition(tryUnit, 1, false) == null);
 	}
 	
 	public Value getUnitDefinition() {
-		return getUnitDefinition(this.units, this.sigFigs);
+		return getUnitDefinition(this.units, this.sigFigs, true);
 	}
 	
 	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in 5 pounds)
-	public static Value getUnitDefinition(String units, int origSigFigs) {
+	public static Value getUnitDefinition(String units, int origSigFigs, boolean rearrange) {
 		if (!(units.contains("/") || units.contains("*"))) {
 			return getSingleUnitDefinition(units, origSigFigs);
 		}
@@ -83,10 +83,16 @@ public class Value {
 		for (int i = 0; i < unitsDivision.length; i++) {
 			splitUnits[i] = unitsDivision[i].split("\\*");
 		}
+		String tempBottomUnits = "";
 		for (String currentUnit : splitUnits[0]) {
 			Value singleUnitValue = getSingleUnitDefinition(currentUnit, origSigFigs);
 			if (singleUnitValue == null) {
 				return null;
+			}
+			if (singleUnitValue.units.contains("/") && rearrange) {
+				String[] complexUnit = singleUnitValue.units.split("/", 2);
+				singleUnitValue.units = complexUnit[0];
+				tempBottomUnits += complexUnit[1] + "*";
 			}
 			definition.value *= singleUnitValue.value;
 			definition.units += singleUnitValue.units + "*";
@@ -95,16 +101,31 @@ public class Value {
 		definition.units = definition.units.substring(0, definition.units.length() - 1);
 		for (int dividedUnits = 1; dividedUnits < splitUnits.length; dividedUnits++) {
 			definition.units += "/";
+			if (dividedUnits == 1 && tempBottomUnits.length() > 0 && rearrange) {
+				definition.units += tempBottomUnits;
+				tempBottomUnits = "";
+			}
 			for (String currentUnit : splitUnits[dividedUnits]) {
 				Value singleUnitValue = getSingleUnitDefinition(currentUnit,  origSigFigs);
 				if (singleUnitValue == null) {
 					return null;
+				}
+				if (singleUnitValue.units.contains("/") && rearrange) {
+					String[] complexUnit = singleUnitValue.units.split("/", 2);
+					singleUnitValue.units = complexUnit[0];
+					tempBottomUnits += complexUnit[1] + "*";
 				}
 				definition.value /= singleUnitValue.value;
 				definition.units += singleUnitValue.units + "*";
 				definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
 			}
 			definition.units = definition.units.substring(0, definition.units.length() - 1);
+		}
+		if (tempBottomUnits.length() > 0 && rearrange) {
+			String[] lastSplitUnits = definition.units.split("/", 2);
+			lastSplitUnits[0] += (lastSplitUnits[0].length() > 0 ? "*" : "") + tempBottomUnits;
+			lastSplitUnits[0] = lastSplitUnits[0].substring(0, lastSplitUnits[0].length() - 1);
+			definition.units = lastSplitUnits[0] + "/" + lastSplitUnits[1];
 		}
 		return definition;
 	}

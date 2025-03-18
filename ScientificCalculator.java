@@ -7,8 +7,9 @@ public class ScientificCalculator {
 		// Kinematics();
 		Value value = Value.getValue("10.183N*s", true);
 		Value def = value.getUnitDefinition();
-		def.printValue(true);
-		// System.out.println(def.formatWithSigFigs());
+		value.value *= def.value;
+		value.units = def.units;
+		value.printValue(true);
 	}
 	
 	public static void SingleConversion() {
@@ -21,7 +22,7 @@ public class ScientificCalculator {
 			} else {
 				Value unitDef = inputValue.getUnitDefinition();
 				Value siValue = new Value(inputValue.value * unitDef.value, unitDef.units, Math.min(inputValue.sigFigs, unitDef.sigFigs));
-				Value unitToConvert = Value.getUnitDefinition(input[1], inputValue.sigFigs);
+				Value unitToConvert = Value.getUnitDefinition(input[1], inputValue.sigFigs, true);
 				if (unitToConvert == null) {
 					System.out.print("Invalid unknown value");
 				} else {
