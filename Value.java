@@ -65,15 +65,15 @@ public class Value {
 	
 	// Check whether the inputted Value has a valid (currently supported) unit
 	public static boolean isValidUnit(String tryUnit) {
-		return !(getUnitDefinition(tryUnit, 1, false) == null);
+		return !(getUnitDefinition(tryUnit, 1) == null);
 	}
 	
 	public Value getUnitDefinition() {
-		return getUnitDefinition(this.units, this.sigFigs, true);
+		return getUnitDefinition(this.units, this.sigFigs);
 	}
 	
 	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in 5 pounds)
-	public static Value getUnitDefinition(String units, int origSigFigs, boolean rearrange) {
+	public static Value getUnitDefinition(String units, int origSigFigs) {
 		if (!(units.contains("/") || units.contains("*"))) {
 			return getSingleUnitDefinition(units, origSigFigs);
 		}
@@ -89,7 +89,7 @@ public class Value {
 			if (singleUnitValue == null) {
 				return null;
 			}
-			if (singleUnitValue.units.contains("/") && rearrange) {
+			if (singleUnitValue.units.contains("/")) {
 				String[] complexUnit = singleUnitValue.units.split("/", 2);
 				singleUnitValue.units = complexUnit[0];
 				tempBottomUnits += complexUnit[1] + "*";
@@ -99,18 +99,21 @@ public class Value {
 			definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
 		}
 		definition.units = definition.units.substring(0, definition.units.length() - 1);
+		definition.units += "/";
+		if (tempBottomUnits.length() > 0) {
+			definition.units += tempBottomUnits;
+			tempBottomUnits = "";
+		}
 		for (int dividedUnits = 1; dividedUnits < splitUnits.length; dividedUnits++) {
-			definition.units += "/";
-			if (dividedUnits == 1 && tempBottomUnits.length() > 0 && rearrange) {
-				definition.units += tempBottomUnits;
-				tempBottomUnits = "";
+			if (dividedUnits != 1) {
+				definition.units += "*";
 			}
 			for (String currentUnit : splitUnits[dividedUnits]) {
 				Value singleUnitValue = getSingleUnitDefinition(currentUnit,  origSigFigs);
 				if (singleUnitValue == null) {
 					return null;
 				}
-				if (singleUnitValue.units.contains("/") && rearrange) {
+				if (singleUnitValue.units.contains("/")) {
 					String[] complexUnit = singleUnitValue.units.split("/", 2);
 					singleUnitValue.units = complexUnit[0];
 					tempBottomUnits += complexUnit[1] + "*";
@@ -121,11 +124,21 @@ public class Value {
 			}
 			definition.units = definition.units.substring(0, definition.units.length() - 1);
 		}
-		if (tempBottomUnits.length() > 0 && rearrange) {
+		if (definition.units.charAt(definition.units.length() - 1) == '*') {
+			definition.units = definition.units.substring(0, definition.units.length() - 1);
+		}
+		if (definition.units.charAt(definition.units.length() - 1) == '/') {
+			definition.units = definition.units.substring(0, definition.units.length() - 1);
+		}
+		if (tempBottomUnits.length() > 0) {
 			String[] lastSplitUnits = definition.units.split("/", 2);
-			lastSplitUnits[0] += (lastSplitUnits[0].length() > 0 ? "*" : "") + tempBottomUnits;
-			lastSplitUnits[0] = lastSplitUnits[0].substring(0, lastSplitUnits[0].length() - 1);
-			definition.units = lastSplitUnits[0] + "/" + lastSplitUnits[1];
+			if (lastSplitUnits.length > 1) {
+				lastSplitUnits[0] += (lastSplitUnits[0].length() > 0 ? "*" : "") + tempBottomUnits;
+				lastSplitUnits[0] = lastSplitUnits[0].substring(0, lastSplitUnits[0].length() - 1);
+				definition.units = lastSplitUnits[0] + "/" + lastSplitUnits[1];
+			} else {
+				definition.units += (definition.units.length() > 0 ? "*" : "") + tempBottomUnits;
+			}
 		}
 		return definition;
 	}

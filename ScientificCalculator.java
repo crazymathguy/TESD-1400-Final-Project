@@ -1,20 +1,41 @@
 import java.util.*;
 import javax.lang.model.element.*;
+import javax.net.ssl.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
-		// SingleConversion();
-		// Kinematics();
-		Value value = Value.getValue("10.183N*s", true);
+		int answer;
+		try {
+			answer = Integer.parseInt(getUserInput("Choose a function to use:\n\t0) Exit program\n\t1) Conversion with the same type of unit\n\t2) Physics motion equations"));
+		} catch (NumberFormatException e) {
+			answer = -1;
+		}
+		System.out.println();
+		switch (answer) {
+			case 0:
+				return;
+			case 1:
+				SingleConversion();
+				break;
+			case 2:
+				Kinematics();
+				break;
+			default:
+				System.out.println("Invalid, please try again");
+				break;
+		}
+		System.out.println();
+		String[] nullArgs = {};
+		main(nullArgs);
+		/* Value value = Value.getValue("10.183N*s", true);
 		Value def = value.getUnitDefinition();
 		value.value *= def.value;
 		value.units = def.units;
-		value.printValue(true);
+		value.printValue(true); */
 	}
 	
 	public static void SingleConversion() {
-		String[] input = getUserInput("Enter a value and a unit to convert it to\n(separated by a space: eg. 4.5mi m)");
-		
+		String[] input = getUserInputLine("Enter a value and a unit to convert it to\n(separated by a space: eg. 4.5mi m)");
 		if (input.length == 2) {
 			Value inputValue = Value.getValue(input[0], true);
 			if (inputValue == null) {
@@ -22,7 +43,7 @@ public class ScientificCalculator {
 			} else {
 				Value unitDef = inputValue.getUnitDefinition();
 				Value siValue = new Value(inputValue.value * unitDef.value, unitDef.units, Math.min(inputValue.sigFigs, unitDef.sigFigs));
-				Value unitToConvert = Value.getUnitDefinition(input[1], inputValue.sigFigs, true);
+				Value unitToConvert = Value.getUnitDefinition(input[1], inputValue.sigFigs);
 				if (unitToConvert == null) {
 					System.out.print("Invalid unknown value");
 				} else {
@@ -50,8 +71,7 @@ public class ScientificCalculator {
 		int unknownVariable = 0;
 		String[] variables = {"Xi", "Xf", "Dx", "Vi", "Vf", "Dv", "v", "Dt", "a"};
 		Scanner input = new Scanner(System.in);
-		System.out.println("Motion data: Enter your unknown variable, then your known variables (for help, enter 1)");
-		String unknown = input.nextLine();
+		String unknown = getUserInput("Motion data: Enter your unknown variable, then your known variables (for help, enter 1)");
 		if (unknown.equals("1")) {
 			printHelp();
 			Kinematics();
@@ -94,11 +114,19 @@ public class ScientificCalculator {
 	}
 	
 	// Obtains user input
-	static String[] getUserInput(String message) {
+	static String[] getUserInputLine(String message) {
 		Scanner input = new Scanner(System.in);
 		System.out.println(message);
 		String line = input.nextLine();
 		return line.split(" ");
+	}
+	
+	// Obtains user input
+	static String getUserInput(String message) {
+		Scanner input = new Scanner(System.in);
+		System.out.println(message);
+		String line = input.nextLine();
+		return line;
 	}
 	
 	// Manipulates equations to isolate unknowns
@@ -112,6 +140,7 @@ public class ScientificCalculator {
 		known.printValue(withSigFigs);
 		System.out.print(" = ");
 		unknown.printValue(withSigFigs);
+		System.out.println();
 	}
 	
 	// Prints help for kinematics
