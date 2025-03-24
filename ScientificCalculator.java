@@ -1,6 +1,6 @@
 import java.util.*;
-import javax.lang.model.element.*;
-import javax.net.ssl.*;
+// import javax.lang.model.element.*;
+// import javax.net.ssl.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
@@ -131,8 +131,67 @@ public class ScientificCalculator {
 	
 	// Manipulates equations to isolate unknowns
 	static Value AlgebraEquations(String equation, String unknown, Value[] values) {
-		Value answer = new Value(1, "m/s*s", 1);
+		Value answer = new Value(1, "", 1);
+		if (!equation.contains(unknown)) {
+			return null;
+		}
+		String[] pieces = IsolatePieces(equation);
 		return answer;
+	}
+	
+	// Split an equation based on algebraic pieces
+	static String[] IsolatePieces(String equation) {
+		String[] separateBySpace = equation.split(" ");
+		String currentPiece = "";
+		String[] pieces = new String[separateBySpace.length];
+		int parentheses = 0;
+		int piecesIndex = 0;
+		boolean isNegative = false;
+		for (String piece : separateBySpace) {
+			parentheses += countSubstrings(piece, "(");
+			parentheses -= countSubstrings(piece, ")");
+			if (parentheses > 0) {
+				currentPiece += piece + " ";
+			} else {
+				if (piece.equals("-")) {
+					isNegative = true;
+					continue;
+				}
+				if (currentPiece.length() > 0) {
+					currentPiece = currentPiece.substring(0, currentPiece.length() - 1);
+				} else {
+					currentPiece = piece;
+				}
+				if (isNegative) {
+					isNegative = false;
+					currentPiece = "-" + currentPiece;
+				}
+				pieces[piecesIndex] = currentPiece;
+				currentPiece = "";
+				piecesIndex++;
+			}
+		}
+		String[] returnString = new String[piecesIndex];
+		for (int i = 0; i < piecesIndex; i++) {
+			returnString[i] = pieces[i];
+		}
+		return returnString;
+	}
+	
+	// Count how many times a certain substring appears
+	public static int countSubstrings(String text, String substring) {
+		int count = 0;
+		int index = 0;
+		
+		if (substring.isEmpty()) {
+			return 0;
+		}
+		
+		while ((index = text.indexOf(substring, index)) != -1) {
+			count++;
+			index += substring.length(); // Move past the last found occurrence
+		}
+		return count;
 	}
 	
 	// Prints output of unit conversion calculations
