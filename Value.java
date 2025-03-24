@@ -1,5 +1,6 @@
 import java.util.*;
 import java.io.*;
+import javax.lang.model.type.*;
 
 // Class to handle any physical measurements
 public class Value {
@@ -19,12 +20,12 @@ public class Value {
 	}
 	
 	// Parses a string into a Value (separates the numerical value from the units, and counts sig figs)
-	static Value getValue(String stringToParse, boolean checkTrue) {
+	static Value getValue(String stringToParse, boolean checkValid) {
 		String numericalValue = "";
 		String unitsValue = "";
 		for (int i = 0; i < stringToParse.length(); i++) {
 			char current = stringToParse.charAt(i);
-			if (Character.isLetter(current)) {
+			if (Character.isLetter(current) || current == '*' || current == '/') {
 				unitsValue += current;
 			}
 			else if (Character.isDigit(current) || current == '.') {
@@ -36,7 +37,7 @@ public class Value {
 		}
 		int sigFigs = getSigFigs(numericalValue);
 		Value returnValue = new Value(Double.parseDouble(numericalValue), unitsValue, sigFigs);
-		if (!checkTrue) {
+		if (!checkValid) {
 			return returnValue;
 		}
 		if (returnValue.isValid()) {
@@ -64,17 +65,88 @@ public class Value {
 	
 	// Check whether the inputted Value has a valid (currently supported) unit
 	public static boolean isValidUnit(String tryUnit) {
-		return !(getUnitDefinition(tryUnit) == null);
+		return !(getUnitDefinition(tryUnit, 1) == null);
 	}
 	
 	public Value getUnitDefinition() {
-		return getUnitDefinition(this.units);
+		return getUnitDefinition(this.units, this.sigFigs);
 	}
 	
-	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in a pound)
-	public static Value getUnitDefinition(String units) {
+	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in 5 pounds)
+	public static Value getUnitDefinition(String units, int origSigFigs) {
+		if (!(units.contains("/") || units.contains("*"))) {
+			return getSingleUnitDefinition(units, origSigFigs);
+		}
+		Value definition = new Value(1, "", origSigFigs);
+		String[] unitsDivision = units.split("/");
+		String[][] splitUnits = new String[unitsDivision.length][];
+		for (int i = 0; i < unitsDivision.length; i++) {
+			splitUnits[i] = unitsDivision[i].split("\\*");
+		}
+		String tempBottomUnits = "";
+		for (String currentUnit : splitUnits[0]) {
+			Value singleUnitValue = getSingleUnitDefinition(currentUnit, origSigFigs);
+			if (singleUnitValue == null) {
+				return null;
+			}
+			if (singleUnitValue.units.contains("/")) {
+				String[] complexUnit = singleUnitValue.units.split("/", 2);
+				singleUnitValue.units = complexUnit[0];
+				tempBottomUnits += complexUnit[1] + "*";
+			}
+			definition.value *= singleUnitValue.value;
+			definition.units += singleUnitValue.units + "*";
+			definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
+		}
+		definition.units = definition.units.substring(0, definition.units.length() - 1);
+		definition.units += "/";
+		if (tempBottomUnits.length() > 0) {
+			definition.units += tempBottomUnits;
+			tempBottomUnits = "";
+		}
+		for (int dividedUnits = 1; dividedUnits < splitUnits.length; dividedUnits++) {
+			if (dividedUnits != 1) {
+				definition.units += "*";
+			}
+			for (String currentUnit : splitUnits[dividedUnits]) {
+				Value singleUnitValue = getSingleUnitDefinition(currentUnit,  origSigFigs);
+				if (singleUnitValue == null) {
+					return null;
+				}
+				if (singleUnitValue.units.contains("/")) {
+					String[] complexUnit = singleUnitValue.units.split("/", 2);
+					singleUnitValue.units = complexUnit[0];
+					tempBottomUnits += complexUnit[1] + "*";
+				}
+				definition.value /= singleUnitValue.value;
+				definition.units += singleUnitValue.units + "*";
+				definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
+			}
+			definition.units = definition.units.substring(0, definition.units.length() - 1);
+		}
+		if (definition.units.charAt(definition.units.length() - 1) == '*') {
+			definition.units = definition.units.substring(0, definition.units.length() - 1);
+		}
+		if (definition.units.charAt(definition.units.length() - 1) == '/') {
+			definition.units = definition.units.substring(0, definition.units.length() - 1);
+		}
+		if (tempBottomUnits.length() > 0) {
+			String[] lastSplitUnits = definition.units.split("/", 2);
+			if (lastSplitUnits.length > 1) {
+				lastSplitUnits[0] += (lastSplitUnits[0].length() > 0 ? "*" : "") + tempBottomUnits;
+				lastSplitUnits[0] = lastSplitUnits[0].substring(0, lastSplitUnits[0].length() - 1);
+				definition.units = lastSplitUnits[0] + "/" + lastSplitUnits[1];
+			} else {
+				definition.units += (definition.units.length() > 0 ? "*" : "") + tempBottomUnits;
+			}
+		}
+		return definition;
+	}
+		
+	public static Value getSingleUnitDefinition(String units, int origSigFigs) {
+		String line;
 		int power = 0;
-		String line = getLine(units);
+		line = getLine(units);
 		if (line == null) {
 			if (units.length() <= 1) {
 				return null;
@@ -92,7 +164,7 @@ public class Value {
 		String[] def = line.split(" ");
 		Value returnValue = getValue(def[2], false);
 		if (!(def[2].contains("."))) {
-			returnValue.sigFigs = Integer.MAX_VALUE;
+			returnValue.sigFigs = origSigFigs;
 		}
 		returnValue.value *= Math.pow(10, power);
 		return returnValue;
@@ -166,6 +238,9 @@ public class Value {
 		if (sigFigs < 1) {
 			return null;
 		}
+		if (sigFigs == Integer.MAX_VALUE) {
+			
+		}
 		String inputString = Double.toString(value);
 		String formattedString = "";
 		boolean decimalPoint = false;
@@ -180,7 +255,9 @@ public class Value {
 				decimalDigits++;
 			}
 			i++;
-			current = inputString.charAt(i);
+			if (i < inputString.length()) {
+				current = inputString.charAt(i);
+			}
 		}
 		int j = i;
 		while (sigFigs > 0) {
