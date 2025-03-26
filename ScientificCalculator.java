@@ -20,6 +20,12 @@ public class ScientificCalculator {
 			case 2:
 				Kinematics();
 				break;
+			case 3:
+				String[] testPieces = IsolatePieces("Dv = Vf - Vi");
+				for (String i : testPieces) {
+					System.out.println(i);
+				}
+				break;
 			default:
 				System.out.println("Invalid, please try again");
 				break;
@@ -71,7 +77,7 @@ public class ScientificCalculator {
 		int unknownVariable = 0;
 		String[] variables = {"Xi", "Xf", "Dx", "Vi", "Vf", "Dv", "v", "Dt", "a"};
 		Scanner input = new Scanner(System.in);
-		String unknown = getUserInput("Motion data: Enter your unknown variable, then your known variables (for help, enter 1)");
+		String unknown = getUserInput("Motion data: Enter your unknown variable, then your known variables (for help, press 1)");
 		if (unknown.equals("1")) {
 			printHelp();
 			Kinematics();
@@ -97,7 +103,7 @@ public class ScientificCalculator {
 				}
 			}
 			int[] equationVariables = {0b000000111, 0b011000011, 0b011000100, 0b000111000, 0b110011000, 0b110100000, 0b110001011, 0b110001100, 0b100011100, 0b100011011};
-			String[] equations = {"Dx = Xf - Xi", "v = (Xf - Xi)/Dt", "v = Dx/Dt", "Dv = Vf - Vi", "a = (Vf - Vi)/Dt", "a = Dv/Dt", "Xf = Xi + ViDt + a(Dt)2/2", "Dx = ViDt + a(Dt)2/2", "Vf2 = Vi2 + 2aDx", "Vf2 = Vi2 + 2a(Xf - Xi)"};
+			String[] equations = {"Dx = Xf - Xi", "v = (Xf - Xi)/Dt", "v = Dx/Dt", "Dv = Vf - Vi", "a = (Vf - Vi)/Dt", "a = Dv/Dt", "Xf = Xi + Vi*Dt + a*(Dt)2/2", "Dx = Vi*Dt + a*(Dt)2/2", "Vf2 = Vi2 + 2*a*Dx", "Vf2 = Vi2 + 2*a*(Xf - Xi)"};
 			for (int i = 0; i < equations.length; i++) {
 				// if the variablesUsed contains at least the necessary components and the equation contains the unknown variable
 				if ((variablesUsed & equationVariables[i]) == equationVariables[i] && (unknownVariable & equationVariables[i]) > 0) {
@@ -135,7 +141,46 @@ public class ScientificCalculator {
 		if (!equation.contains(unknown)) {
 			return null;
 		}
+		if (unknown == null) {
+			return null;
+		}
 		String[] pieces = IsolatePieces(equation);
+		String[] equationLeft = new String[pieces.length];
+		String[] equationRight = new String[pieces.length];
+		int index = 0;
+		boolean rightSide = false;
+		boolean unknownLeft = false;
+		for (String piece : pieces) {
+			if (piece.equals("=")) {
+				index = 0;
+				rightSide = true;
+				continue;
+			}
+			if (rightSide) {
+				equationRight[index] = piece;
+			} else {
+				equationLeft[index] = piece;
+				if (piece.contains(unknown)) {
+					unknownLeft = true;
+				}
+			}
+			index++;
+		}
+		if (!unknownLeft) {
+			String[] temp = equationLeft;
+			equationLeft = equationRight;
+			equationRight = temp;
+		}
+		for (String switchPiece : equationLeft) {
+			if (switchPiece.contains(unknown)) {
+				continue;
+			}
+			if (switchPiece.charAt(0) == '-') {
+				switchPiece = switchPiece.substring(1, switchPiece.length());
+			} else {
+				switchPiece = "-" + switchPiece;
+			}
+		}
 		return answer;
 	}
 	
@@ -157,11 +202,7 @@ public class ScientificCalculator {
 					isNegative = true;
 					continue;
 				}
-				if (currentPiece.length() > 0) {
-					currentPiece = currentPiece.substring(0, currentPiece.length() - 1);
-				} else {
-					currentPiece = piece;
-				}
+				currentPiece += piece;
 				if (isNegative) {
 					isNegative = false;
 					currentPiece = "-" + currentPiece;
