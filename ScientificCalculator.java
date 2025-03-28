@@ -21,7 +21,7 @@ public class ScientificCalculator {
 				Kinematics();
 				break;
 			case 3:
-				String[] testPieces = IsolatePieces("Dv = Vf - Vi");
+				String[] testPieces = IsolatePieces("Dv = Vf - Vi + 2a(Dt)2");
 				for (String i : testPieces) {
 					System.out.println(i);
 				}
@@ -172,6 +172,9 @@ public class ScientificCalculator {
 			equationRight = temp;
 		}
 		for (String switchPiece : equationLeft) {
+			if (switchPiece == null) {
+				continue;
+			}
 			if (switchPiece.contains(unknown)) {
 				continue;
 			}
@@ -181,10 +184,18 @@ public class ScientificCalculator {
 				switchPiece = "-" + switchPiece;
 			}
 		}
+		System.out.print(equationLeft[0] + " =");
+		for (String right : equationRight) {
+			if (right == null) {
+				continue;
+			}
+			System.out.print(" " + right);
+		}
+		System.out.println();
 		return answer;
 	}
 	
-	// Split an equation based on algebraic pieces
+	// Split an equation into algebraic pieces
 	static String[] IsolatePieces(String equation) {
 		String[] separateBySpace = equation.split(" ");
 		String currentPiece = "";
@@ -198,6 +209,9 @@ public class ScientificCalculator {
 			if (parentheses > 0) {
 				currentPiece += piece + " ";
 			} else {
+				if (piece.equals("+")) {
+					continue;
+				}
 				if (piece.equals("-")) {
 					isNegative = true;
 					continue;
