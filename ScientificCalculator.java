@@ -21,10 +21,11 @@ public class ScientificCalculator {
 				Kinematics();
 				break;
 			case 3:
-				String[] testPieces = IsolatePieces("Dv = Vf - Vi + 2a(Dt)2");
-				for (String i : testPieces) {
+				Value[] values = {};
+				Value test = AlgebraEquations("Dv = Vf - Vi + 2a(Dt)2", "Vi", values);
+				/* for (String i : testPieces) {
 					System.out.println(i);
-				}
+				} */
 				break;
 			default:
 				System.out.println("Invalid, please try again");
@@ -166,12 +167,16 @@ public class ScientificCalculator {
 			}
 			index++;
 		}
+		printAlgebraEquation(equationLeft, equationRight);
+
 		if (!unknownLeft) {
 			String[] temp = equationLeft;
 			equationLeft = equationRight;
 			equationRight = temp;
 		}
-		for (String switchPiece : equationLeft) {
+		int right = findFirst(equationRight, null);
+		for (int left = 0; left < equationLeft.length; left++) {
+			String switchPiece = equationLeft[left];
 			if (switchPiece == null) {
 				continue;
 			}
@@ -183,16 +188,46 @@ public class ScientificCalculator {
 			} else {
 				switchPiece = "-" + switchPiece;
 			}
+			equationLeft[left] = null;
+			equationRight[right] = switchPiece;
+			right++;
 		}
-		System.out.print(equationLeft[0] + " =");
-		for (String right : equationRight) {
-			if (right == null) {
-				continue;
+		printAlgebraEquation(equationLeft, equationRight);
+		
+		if (equationLeft[0].charAt(0) == '-') {
+			equationLeft[0] = equationLeft[0].substring(1, equationLeft[0].length());
+			for (int rightIdx = 0; rightIdx < equationRight.length; rightIdx++) {
+				if (equationRight[rightIdx].charAt(0) == '-') {
+					equationRight[rightIdx] = equationRight[rightIdx].substring(1, equationRight[rightIdx].length());
+				} else {
+					equationRight[rightIdx] = "-" + equationRight[rightIdx];
+				}
 			}
-			System.out.print(" " + right);
 		}
-		System.out.println();
+		printAlgebraEquation(equationLeft, equationRight);
+		
 		return answer;
+	}
+	
+	// Print an equation
+	static void printAlgebraEquation(String[] equationLeft, String[] equationRight) {
+		for (String writeEquation : equationLeft) {
+			if (writeEquation == null) {
+				continue;
+			} else {
+				System.out.print(writeEquation + " ");
+			}
+		}
+		System.out.print("=");
+		for (String writeEquation : equationRight) {
+			if (writeEquation == null) {
+				continue;
+			} else {
+				System.out.print(" " + writeEquation);
+			}
+		}
+		
+		System.out.println();
 	}
 	
 	// Split an equation into algebraic pieces
@@ -233,7 +268,7 @@ public class ScientificCalculator {
 		return returnString;
 	}
 	
-	// Count how many times a certain substring appears
+	// Count how many times a certain substring appears in a given string
 	public static int countSubstrings(String text, String substring) {
 		int count = 0;
 		int index = 0;
@@ -278,5 +313,15 @@ public class ScientificCalculator {
 			}
 		}
 		return false;
+	}
+	
+	// Finds the first instance of a string in a String[]
+	static int findFirst(String[] search, String find) {
+		for (int i = 0; i < search.length; i++) {
+			if (search[i] == find) {
+				return i;
+			}
+		}
+		return -1;
 	}
 }
