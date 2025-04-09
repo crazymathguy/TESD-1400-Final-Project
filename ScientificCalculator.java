@@ -15,14 +15,14 @@ public class ScientificCalculator {
 			case 0:
 				return;
 			case 1:
-				SingleConversion();
+				singleConversion();
 				break;
 			case 2:
-				Kinematics();
+				kinematics();
 				break;
 			case 3:
 				Value[] values = {};
-				Value test = AlgebraEquations("Dv = Vf - Vi + 2a(Dt)2", "Vi", values);
+				Value test = plugInValues("Dx = Vi*Dt + a*(Dt)2/2", "Vi", values);
 				/* for (String i : testPieces) {
 					System.out.println(i);
 				} */
@@ -41,7 +41,7 @@ public class ScientificCalculator {
 		value.printValue(true); */
 	}
 	
-	public static void SingleConversion() {
+	public static void singleConversion() {
 		String[] input = getUserInputLine("Enter a value and a unit to convert it to\n(separated by a space: eg. 4.5mi m)");
 		if (input.length == 2) {
 			Value inputValue = Value.getValue(input[0], true);
@@ -72,7 +72,7 @@ public class ScientificCalculator {
 	}
 	
 	// Manipulates motion data
-	static void Kinematics() {
+	static void kinematics() {
 		// String[] input = getUserInput("Motion data: Enter an unknown and as much given information as possible\n(separated by spaces: eg. Dx ");
 		int variablesUsed = 0;
 		int unknownVariable = 0;
@@ -81,7 +81,7 @@ public class ScientificCalculator {
 		String unknown = getUserInput("Motion data: Enter your unknown variable, then your known variables (for help, press 1)");
 		if (unknown.equals("1")) {
 			printHelp();
-			Kinematics();
+			kinematics();
 			return;
 		} else if (validVariable(unknown, variables)) {
 			Value[] values = new Value[variables.length];
@@ -109,14 +109,14 @@ public class ScientificCalculator {
 				// if the variablesUsed contains at least the necessary components and the equation contains the unknown variable
 				if ((variablesUsed & equationVariables[i]) == equationVariables[i] && (unknownVariable & equationVariables[i]) > 0) {
 					System.out.println(equations[i]);
-					Value answer = AlgebraEquations(equations[i], unknown, values);
+					Value answer = plugInValues(equations[i], unknown, values);
 					System.out.print(unknown + " = ");
 					answer.printValue(true);
 					return;
 				}
 			}
 			System.out.println("Not enough information");
-			Kinematics();
+			kinematics();
 		}
 	}
 	
@@ -136,16 +136,22 @@ public class ScientificCalculator {
 		return line;
 	}
 	
-	// Manipulates equations to isolate unknowns
-	static Value AlgebraEquations(String equation, String unknown, Value[] values) {
+	// Plugs the numerical values into the equation
+	static Value plugInValues(String equation, String unknown, Value[] values) {
 		Value answer = new Value(1, "", 1);
+		String[] expression = algebraEquations(equation, unknown);
+		return answer;
+	}
+	
+	// Manipulates equations to isolate unknowns
+	static String[] algebraEquations(String equation, String unknown) {
 		if (!equation.contains(unknown)) {
 			return null;
 		}
 		if (unknown == null) {
 			return null;
 		}
-		String[] pieces = IsolatePieces(equation);
+		String[] pieces = isolatePieces(equation, " ");
 		String[] equationLeft = new String[pieces.length];
 		String[] equationRight = new String[pieces.length];
 		int index = 0;
@@ -167,7 +173,7 @@ public class ScientificCalculator {
 			}
 			index++;
 		}
-		printAlgebraEquation(equationLeft, equationRight);
+		printAlgebraEquation(equationLeft, equationRight, false);
 
 		if (!unknownLeft) {
 			String[] temp = equationLeft;
@@ -192,11 +198,23 @@ public class ScientificCalculator {
 			equationRight[right] = switchPiece;
 			right++;
 		}
-		printAlgebraEquation(equationLeft, equationRight);
+		equationLeft = fixEmptyString(equationLeft);
+		printAlgebraEquation(equationLeft, equationRight, true);
+		
+		if (equationLeft[1] != null) {
+			System.out.println("Cannot handle multiple unknowns yet");
+			return null;
+		}
+		if (equationLeft[0].equals(unknown)) {
+			return equationRight;
+		}
 		
 		if (equationLeft[0].charAt(0) == '-') {
 			equationLeft[0] = equationLeft[0].substring(1, equationLeft[0].length());
 			for (int rightIdx = 0; rightIdx < equationRight.length; rightIdx++) {
+				if (equationRight[rightIdx] == null) {
+					continue;
+				}
 				if (equationRight[rightIdx].charAt(0) == '-') {
 					equationRight[rightIdx] = equationRight[rightIdx].substring(1, equationRight[rightIdx].length());
 				} else {
@@ -204,15 +222,20 @@ public class ScientificCalculator {
 				}
 			}
 		}
-		printAlgebraEquation(equationLeft, equationRight);
+		printAlgebraEquation(equationLeft, equationRight, false);
+		if (equationLeft[0].equals(unknown)) {
+			return equationRight;
+		}
 		
-		return answer;
+		
+		
+		return equationRight;
 	}
 	
 	// Print an equation
-	static void printAlgebraEquation(String[] equationLeft, String[] equationRight) {
+	static void printAlgebraEquation(String[] equationLeft, String[] equationRight, boolean withEmptySpace) {
 		for (String writeEquation : equationLeft) {
-			if (writeEquation == null) {
+			if (writeEquation == null && !withEmptySpace) {
 				continue;
 			} else {
 				System.out.print(writeEquation + " ");
@@ -231,8 +254,8 @@ public class ScientificCalculator {
 	}
 	
 	// Split an equation into algebraic pieces
-	static String[] IsolatePieces(String equation) {
-		String[] separateBySpace = equation.split(" ");
+	static String[] isolatePieces(String equation, String delimiter) {
+		String[] separateBySpace = equation.split(delimiter);
 		String currentPiece = "";
 		String[] pieces = new String[separateBySpace.length];
 		int parentheses = 0;
@@ -268,8 +291,24 @@ public class ScientificCalculator {
 		return returnString;
 	}
 	
+	static String[] fixEmptyString(String[] fix) {
+		int emptyIndex = 0;
+		for (int currentIndex = 0; currentIndex < fix.length; currentIndex++) {
+			if (fix[currentIndex] == null) {
+				continue;
+			} else {
+				if (currentIndex > emptyIndex) {
+					fix[emptyIndex] = fix[currentIndex];
+					fix[currentIndex] = null;
+				}
+				emptyIndex++;
+			}
+		}
+		return fix;
+	}
+	
 	// Count how many times a certain substring appears in a given string
-	public static int countSubstrings(String text, String substring) {
+	static int countSubstrings(String text, String substring) {
 		int count = 0;
 		int index = 0;
 		
