@@ -1,6 +1,5 @@
 import java.util.*;
 import java.io.*;
-// import javax.lang.model.type.*;
 
 // Class to handle any physical measurements
 public class Value {
@@ -15,7 +14,7 @@ public class Value {
 	// Value constructor
 	public Value(double value, String units, int sigFigs) {
 		this.value = value;
-		this.units = units;
+		this.units = units.replace('u', 'μ');
 		this.sigFigs = sigFigs;
 	}
 	
@@ -74,6 +73,7 @@ public class Value {
 	
 	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in 5 pounds)
 	public static Value getUnitDefinition(String units, int origSigFigs) {
+		units.replace('u', 'μ');
 		if (!(units.contains("/") || units.contains("*"))) {
 			return getSingleUnitDefinition(units, origSigFigs);
 		}
