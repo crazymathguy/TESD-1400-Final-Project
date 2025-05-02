@@ -14,7 +14,7 @@ public class Value {
 	// Value constructor
 	public Value(double value, String units, int sigFigs) {
 		this.value = value;
-		this.units = units.replace('u', 'μ');
+		this.units = units; // .replace('u', 'μ');
 		this.sigFigs = sigFigs;
 	}
 	
@@ -24,7 +24,7 @@ public class Value {
 		String unitsValue = "";
 		for (int i = 0; i < stringToParse.length(); i++) {
 			char current = stringToParse.charAt(i);
-			if (Character.isLetter(current) || current == '*' || current == '/') {
+			if (Character.isLetter(current) || current == ':' || current == '/') {
 				unitsValue += current;
 			}
 			else if (Character.isDigit(current) || current == '.') {
@@ -54,7 +54,7 @@ public class Value {
 		} else {
 			printValue = Double.toString(this.value);
 		}
-		System.out.print(printValue + this.units);
+		System.out.print(printValue.replace('u', 'μ').replace(':', '*') + this.units);
 	}
 	
 	// Checks whether this Value is valid
@@ -74,14 +74,14 @@ public class Value {
 	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in 5 pounds)
 	public static Value getUnitDefinition(String units, int origSigFigs) {
 		units.replace('u', 'μ');
-		if (!(units.contains("/") || units.contains("*"))) {
+		if (!(units.contains("/") || units.contains(":"))) {
 			return getSingleUnitDefinition(units, origSigFigs);
 		}
 		Value definition = new Value(1, "", origSigFigs);
 		String[] unitsDivision = units.split("/");
 		String[][] splitUnits = new String[unitsDivision.length][];
 		for (int i = 0; i < unitsDivision.length; i++) {
-			splitUnits[i] = unitsDivision[i].split("\\*");
+			splitUnits[i] = unitsDivision[i].split(":");
 		}
 		String tempBottomUnits = "";
 		for (String currentUnit : splitUnits[0]) {
@@ -92,10 +92,10 @@ public class Value {
 			if (singleUnitValue.units.contains("/")) {
 				String[] complexUnit = singleUnitValue.units.split("/", 2);
 				singleUnitValue.units = complexUnit[0];
-				tempBottomUnits += complexUnit[1] + "*";
+				tempBottomUnits += complexUnit[1] + ":";
 			}
 			definition.value *= singleUnitValue.value;
-			definition.units += singleUnitValue.units + "*";
+			definition.units += singleUnitValue.units + ":";
 			definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
 		}
 		definition.units = definition.units.substring(0, definition.units.length() - 1);
@@ -106,7 +106,7 @@ public class Value {
 		}
 		for (int dividedUnits = 1; dividedUnits < splitUnits.length; dividedUnits++) {
 			if (dividedUnits != 1) {
-				definition.units += "*";
+				definition.units += ":";
 			}
 			for (String currentUnit : splitUnits[dividedUnits]) {
 				Value singleUnitValue = getSingleUnitDefinition(currentUnit,  origSigFigs);
@@ -116,15 +116,15 @@ public class Value {
 				if (singleUnitValue.units.contains("/")) {
 					String[] complexUnit = singleUnitValue.units.split("/", 2);
 					singleUnitValue.units = complexUnit[0];
-					tempBottomUnits += complexUnit[1] + "*";
+					tempBottomUnits += complexUnit[1] + ":";
 				}
 				definition.value /= singleUnitValue.value;
-				definition.units += singleUnitValue.units + "*";
+				definition.units += singleUnitValue.units + ":";
 				definition.sigFigs = Math.min(definition.sigFigs, singleUnitValue.sigFigs);
 			}
 			definition.units = definition.units.substring(0, definition.units.length() - 1);
 		}
-		if (definition.units.charAt(definition.units.length() - 1) == '*') {
+		if (definition.units.charAt(definition.units.length() - 1) == ':') {
 			definition.units = definition.units.substring(0, definition.units.length() - 1);
 		}
 		if (definition.units.charAt(definition.units.length() - 1) == '/') {
@@ -133,11 +133,11 @@ public class Value {
 		if (tempBottomUnits.length() > 0) {
 			String[] lastSplitUnits = definition.units.split("/", 2);
 			if (lastSplitUnits.length > 1) {
-				lastSplitUnits[0] += (lastSplitUnits[0].length() > 0 ? "*" : "") + tempBottomUnits;
+				lastSplitUnits[0] += (lastSplitUnits[0].length() > 0 ? ":" : "") + tempBottomUnits;
 				lastSplitUnits[0] = lastSplitUnits[0].substring(0, lastSplitUnits[0].length() - 1);
 				definition.units = lastSplitUnits[0] + "/" + lastSplitUnits[1];
 			} else {
-				definition.units += (definition.units.length() > 0 ? "*" : "") + tempBottomUnits;
+				definition.units += (definition.units.length() > 0 ? ":" : "") + tempBottomUnits;
 			}
 		}
 		return definition;
