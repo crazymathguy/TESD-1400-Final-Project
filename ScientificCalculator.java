@@ -11,7 +11,7 @@ public class ScientificCalculator {
 		}
 		System.out.println();
 		String[] variables = {"Xi", "Xf", "∆x", "Vi", "Vf", "∆v", "v", "∆t", "a"};
-		Value[] values = {null, null, new Value(18, "m", 3), new Value(5, "m/s", 3), null, null, null, new Value(2, "s", 3), new Value(4, "m/s*s", 3)};
+		Value[] values = {null, null, new Value(18.0, "m", 3), new Value(5.0, "m/s", 3), null, null, null, new Value(2.0, "s", 3), new Value(4.0, "m/s*s", 3)};
 		switch (answer) {
 			case 0:
 				return;
@@ -23,12 +23,10 @@ public class ScientificCalculator {
 				break;
 			case 3:
 				Value test = algebraEquations("∆x = Vi*∆t a*∆t2/2", "Vi", values, variables);
-				/* for (String i : testPieces) {
-					System.out.println(i);
-				} */
+				test.printValue(false);
 				break;
 			case 4:
-				Value test2 = plugInValues("Vi*∆t a*∆t2/2", values, variables);
+				Value test2 = plugInValues("Vi*∆t a*∆t2/2", values, variables, null);
 				test2.printValue(true);
 				break;
 			default:
@@ -38,6 +36,14 @@ public class ScientificCalculator {
 		System.out.println();
 		String[] nullArgs = {};
 		main(nullArgs);
+	}
+	
+	static String[] removeLast(String[] input) {
+		String[] output = new String[input.length - 1];
+		for (int i = 0; i < output.length; i++) {
+			output[i] = input[i];
+		}
+		return output;
 	}
 	
 	public static void singleConversion() {
@@ -142,7 +148,7 @@ public class ScientificCalculator {
 	}
 	
 	// Plugs the numerical values into the equation
-	static Value plugInValues(String expression, Value[] values, String[] variables) {
+	static Value plugInValues(String expression, Value[] values, String[] variables, Value currentValue) {
 		Value answer = new Value(0, "", Integer.MAX_VALUE);
 		boolean negative = false;
 		String[] addPieces = isolatePieces(expression, " ");
@@ -161,7 +167,7 @@ public class ScientificCalculator {
 					Value singleUnit = new Value(1, "", Integer.MAX_VALUE);
 					if (multiply.charAt(0) == '(' && multiply.charAt(multiply.length() - 1) == ')') {
 						multiply = multiply.substring(1, multiply.length() - 1);
-						singleUnit = plugInValues(multiply, values, variables);
+						singleUnit = plugInValues(multiply, values, variables, currentValue);
 					} else {
 						int exponent = 1;
 						try {
@@ -182,16 +188,20 @@ public class ScientificCalculator {
 										return null;
 									}
 								}
-								int i;
-								for (i = 0; i < variables.length; i++) {
-									if (variables[i].equals(multiply)) {
-										singleUnit = values[i];
-										break;
+								if (multiply.equals("calc")) {
+									singleUnit = currentValue;
+								} else {
+									int i;
+									for (i = 0; i < variables.length; i++) {
+										if (variables[i].equals(multiply)) {
+											singleUnit = values[i];
+											break;
+										}
 									}
-								}
-								if (i == variables.length) {
-									System.out.println("An error occurred. Please try again.");
-									return null;
+									if (i == variables.length) {
+										System.out.println("An error occurred. Please try again.");
+										return null;
+									}
 								}
 							}
 						}
@@ -226,6 +236,7 @@ public class ScientificCalculator {
 		if (unknown == null) {
 			return null;
 		}
+		Value answer = new Value(0, "", 1);
 		String[] pieces = isolatePieces(equation, " ");
 		String[] equationLeft = new String[pieces.length];
 		String[] equationRight = new String[pieces.length];
@@ -276,35 +287,32 @@ public class ScientificCalculator {
 		equationLeft = fixEmptyString(equationLeft);
 		printAlgebraEquation(equationLeft, equationRight, true);
 		
-		if (equationLeft[1] != null) {
+		if (equationLeft.length > 1) {
 			System.out.println("Cannot handle multiple unknowns yet");
 			return null;
 		}
+		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, null);
+		equationRight = new String[equationRight.length];
+		equationRight[0] = "calc";
+		equationRight = fixEmptyString(equationRight);
 		if (equationLeft[0].equals(unknown)) {
-			return plugInValues(toAlgebraString(equationRight, " "), values, variables);
+			return answer;
 		}
 		
 		if (equationLeft[0].charAt(0) == '-') {
 			equationLeft[0] = equationLeft[0].substring(1);
-			for (int rightIdx = 0; rightIdx < equationRight.length; rightIdx++) {
-				if (equationRight[rightIdx] == null) {
-					continue;
-				}
-				if (equationRight[rightIdx].charAt(0) == '-') {
-					equationRight[rightIdx] = equationRight[rightIdx].substring(1);
-				} else {
-					equationRight[rightIdx] = '-' + equationRight[rightIdx];
-				}
-			}
+			equationRight[0] = '-' + equationRight[0];
 		}
-		printAlgebraEquation(equationLeft, equationRight, false);
+		printAlgebraEquation(equationLeft, equationRight, true);
+		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, answer);
 		if (equationLeft[0].equals(unknown)) {
-			return plugInValues(toAlgebraString(equationRight, " "), values, variables);
+			return answer;
 		}
 		
+		// equationLeft = isolatePieces(equationLeft[0], "/");
+		// if ()
 		
-		
-		return plugInValues(toAlgebraString(equationRight, " "), values, variables);
+		return plugInValues(toAlgebraString(equationRight, " "), values, variables, answer);
 	}
 	
 	// Print an equation
@@ -356,10 +364,11 @@ public class ScientificCalculator {
 		return returnString;
 	}
 	
+	// returns a new String[] with all null instances removed
 	static String[] fixEmptyString(String[] fix) {
 		int emptyIndex = 0;
 		for (int currentIndex = 0; currentIndex < fix.length; currentIndex++) {
-			if (fix[currentIndex] == null) {
+			if (fix[currentIndex] == null || fix[currentIndex] == "") {
 				continue;
 			} else {
 				if (currentIndex > emptyIndex) {
@@ -369,7 +378,11 @@ public class ScientificCalculator {
 				emptyIndex++;
 			}
 		}
-		return fix;
+		String[] fixed = new String[emptyIndex];
+		for (int i = 0; i < fixed.length; i++) {
+			fixed[i] = fix[i];
+		}
+		return fixed;
 	}
 	
 	// Count how many times a certain substring appears in a given string
