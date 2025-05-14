@@ -1,5 +1,4 @@
 import java.util.*;
-import java.text.*;
 
 public class ScientificCalculator {
 	public static void main(String[] args) {
@@ -11,7 +10,7 @@ public class ScientificCalculator {
 		}
 		System.out.println();
 		String[] variables = {"Xi", "Xf", "∆x", "Vi", "Vf", "∆v", "v", "∆t", "a"};
-		Value[] values = {new Value(6.0, "m", 2), new Value(21.0, "m", 3), new Value(18.0, "m", 3), new Value(5.0, "m/s", 3), null, null, new Value(5.0, "m/s", 2), new Value(2.0, "s", 3), new Value(4.0, "m/s*s", 3)};
+		Value[] values = {new Value(6.0, "m", 2), new Value(21.0, "m", 3), new Value(18.0, "m", 3), new Value(5.0, "m/s", 3), new Value(10.0, "m/s", 2), null, new Value(5.0, "m/s", 2), new Value(2.0, "s", 3), new Value(4.0, "m/s*s", 3)};
 		switch (answer) {
 			case 0:
 				return;
@@ -22,12 +21,12 @@ public class ScientificCalculator {
 				kinematics();
 				break;
 			case 3:
-				Value test = algebraEquations("v = (Xf -Xi)/∆t", "∆t", values, variables);
-				test.printValue(false);
+				Value test = algebraEquations("Vf2 = Vi2 2*a*(Xf -Xi)", "Xf", values, variables);
+				test.printValue(true);
 				break;
 			case 4:
-				Value test2 = plugInValues("Vi*∆t a*∆t2/2", values, variables, null);
-				test2.printValue(true);
+				Value test2 = plugInValues("(Vf2 -Vi2)/(2*a)", values, variables, null);
+				test2.printValue(false);
 				break;
 			default:
 				System.out.println("Invalid, please try again");
@@ -260,7 +259,7 @@ public class ScientificCalculator {
 			}
 			index++;
 		}
-		printAlgebraEquation(equationLeft, equationRight, " + ");
+		printAlgebraEquation(equationLeft, equationRight, " + ", "");
 		
 		if (!unknownLeft) {
 			String[] temp = equationLeft;
@@ -286,14 +285,14 @@ public class ScientificCalculator {
 			right++;
 		}
 		equationLeft = fixEmptyString(equationLeft);
-		printAlgebraEquation(equationLeft, equationRight, " + ");
+		printAlgebraEquation(equationLeft, equationRight, " + ", "");
 		
 		if (equationLeft.length > 1) {
 			System.out.println("Cannot handle multiple unknowns yet");
 			return null;
 		}
 		calc = "(" + toAlgebraString(equationRight, " + ") + ")";
-		answer = plugInValues(calc, values, variables, null);
+		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, null);
 		equationRight = new String[equationRight.length];
 		equationRight[0] = "calc";
 		if (equationLeft[0].equals(unknown)) {
@@ -304,7 +303,7 @@ public class ScientificCalculator {
 			equationLeft[0] = equationLeft[0].substring(1);
 			equationRight[0] = '-' + equationRight[0];
 		}
-		printAlgebraEquation(equationLeft, equationRight, " + ");
+		printAlgebraEquation(equationLeft, equationRight, " + ", calc);
 		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, answer);
 		if (equationLeft[0].equals(unknown)) {
 			return answer;
@@ -318,34 +317,74 @@ public class ScientificCalculator {
 			}
 		}
 		
-		if (equationLeft[1].contains(unknown)) {
-			if (equationLeft[0].contains(unknown)) {
-				System.out.println("Cannot handle multiple unknowns yet");
-				return null;
+		if (equationLeft.length > 1) {
+			if (equationLeft[1].contains(unknown)) {
+				if (equationLeft[0].contains(unknown)) {
+					System.out.println("Cannot handle multiple unknowns yet");
+					return null;
+				}
+				equationRight[1] = equationRight[0];
+				equationRight[0] = equationLeft[0];
+				equationLeft[0] = equationLeft[1];
+				equationLeft[1] = null;
 			}
-			equationRight[1] = equationRight[0];
-			equationRight[0] = equationLeft[0];
-			equationLeft[0] = equationLeft[1];
-			equationLeft[1] = null;
+			printAlgebraEquation(equationLeft, equationRight, "/", calc);
+		
+			calc = "(" + toAlgebraString(equationRight, "/").replace("calc", calc) + ")";
+			answer = plugInValues(toAlgebraString(equationRight, "/"), values, variables, answer);
+			equationRight = new String[equationRight.length];
+			equationRight[0] = "calc";
+		
+		
+			if (equationLeft[1] != null) {
+				equationRight[1] = equationLeft[1];
+				printAlgebraEquation(equationLeft, equationRight, "/", calc);
+			
+				calc = "(" + toAlgebraString(equationRight, "*").replace("calc", calc) + ")";
+				answer = plugInValues(toAlgebraString(equationRight, "*"), values, variables, answer);
+				equationRight = new String[equationRight.length];
+				equationRight[0] = "calc";
+			}
 		}
-		printAlgebraEquation(equationLeft, equationRight, "/");
+		if (equationLeft[0].equals(unknown)) {
+			return answer;
+		}
 		
-		// fix calc string
+		equationLeft = isolatePieces(equationLeft[0], "\\*");
+		String[] rightBottom = new String[equationLeft.length];
+		right = 0;
+		for (int left = 0; left < equationLeft.length; left++) {
+			String switchPiece = equationLeft[left];
+			if (switchPiece == null) {
+				continue;
+			}
+			if (switchPiece.contains(unknown)) {
+				continue;
+			}
+			equationLeft[left] = null;
+			rightBottom[right] = switchPiece;
+			right++;
+		}
+		equationRight[1] = "(" + toAlgebraString(rightBottom, "*") + ")";
+		equationLeft = fixEmptyString(equationLeft);
+		printAlgebraEquation(equationLeft, equationRight, "/", calc);
 		
+		calc = "(" + toAlgebraString(equationRight, "/").replace("calc", calc) + ")";
 		answer = plugInValues(toAlgebraString(equationRight, "/"), values, variables, answer);
 		equationRight = new String[equationRight.length];
 		equationRight[0] = "calc";
 		if (equationLeft[0].equals(unknown)) {
-			printAlgebraEquation(equationLeft, equationRight, "/");
 			return answer;
 		}
 		
-		return answer;
+		
+		
+		return null;
 	}
 	
 	// Print an equation
-	static void printAlgebraEquation(String[] equationLeft, String[] equationRight, String delimiter) {
-		System.out.print(toAlgebraString(equationLeft, delimiter) + " = " + toAlgebraString(equationRight, delimiter));
+	static void printAlgebraEquation(String[] equationLeft, String[] equationRight, String delimiter, String calc) {
+		System.out.println(toAlgebraString(equationLeft, delimiter).replace("calc", calc) + " = " + toAlgebraString(equationRight, delimiter).replace("calc", calc));
 	}
 	
 	// Split an equation into algebraic pieces
