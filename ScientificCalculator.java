@@ -21,7 +21,7 @@ public class ScientificCalculator {
 				kinematics();
 				break;
 			case 3:
-				Value test = algebraEquations("Vf2 = Vi2 2*a*(Xf -Xi)", "Xf", values, variables);
+				Value test = algebraEquations("Vf2 = Vi2 2*a*(Xf -Xi)", "Xf", values, variables, null);
 				test.printValue(true);
 				break;
 			case 4:
@@ -115,7 +115,7 @@ public class ScientificCalculator {
 				// if the variablesUsed contains at least the necessary components and the equation contains the unknown variable
 				if ((variablesUsed & equationVariables[i]) == equationVariables[i] && (unknownVariable & equationVariables[i]) > 0) {
 					System.out.println(equations[i]);
-					Value answer = algebraEquations(equations[i], unknown, values, variables);
+					Value answer = algebraEquations(equations[i], unknown, values, variables, null);
 					if (answer == null) {
 						kinematics();
 						return;
@@ -168,7 +168,7 @@ public class ScientificCalculator {
 						multiply = multiply.substring(1, multiply.length() - 1);
 						singleUnit = plugInValues(multiply, values, variables, currentValue);
 					} else {
-						int exponent = 1;
+						double exponent = 1;
 						try {
 							singleUnit.value = Integer.parseInt(multiply);
 							singleUnit.sigFigs = Integer.MAX_VALUE;
@@ -179,13 +179,8 @@ public class ScientificCalculator {
 							} catch (NumberFormatException f) {
 								int numberIndex = containsNumber(multiply);
 								if (numberIndex > 0) {
-									try {
-										exponent = Integer.parseInt(multiply.substring(numberIndex));
-										multiply = multiply.substring(0, numberIndex);
-									} catch (Exception g) {
-										System.out.println("Only supports integer exponents. Sorry!");
-										return null;
-									}
+									exponent = Double.parseDouble(multiply.substring(numberIndex));
+									multiply = multiply.substring(0, numberIndex);
 								}
 								if (multiply.equals("calc")) {
 									singleUnit = currentValue;
@@ -228,7 +223,7 @@ public class ScientificCalculator {
 	}
 	
 	// Manipulates equations to isolate unknowns
-	static Value algebraEquations(String equation, String unknown, Value[] values, String[] variables) {
+	static Value algebraEquations(String equation, String unknown, Value[] values, String[] variables, Value currentValue) {
 		if (!equation.contains(unknown)) {
 			return null;
 		}
@@ -292,7 +287,7 @@ public class ScientificCalculator {
 			return null;
 		}
 		calc = "(" + toAlgebraString(equationRight, " + ") + ")";
-		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, null);
+		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, currentValue);
 		equationRight = new String[equationRight.length];
 		equationRight[0] = "calc";
 		if (equationLeft[0].equals(unknown)) {
@@ -377,7 +372,31 @@ public class ScientificCalculator {
 			return answer;
 		}
 		
+		try {
+			int i;
+			for (i = equationLeft[0].length() - 1; i >= 0; i--) {
+				if (equationLeft[0].charAt(i) >= '0' && equationLeft[0].charAt(i) <= '9' || equationLeft[0].charAt(i) == '.') {
+					continue;
+				}
+				i++;
+				break;
+			}
+			double exponent = Double.parseDouble(equationLeft[0].substring(i));
+			equationRight[0] += Double.toString(exponent);
+			
+			calc += Double.toString(exponent);
+			answer = plugInValues(equationRight[0], values, variables, answer);
+			equationRight[0] = "calc";
+			if (equationLeft[0].equals(unknown)) {
+				return answer;
+			}
+		} catch (Exception e) {}
 		
+		if (equationLeft[0].charAt(0) == '(') {
+			equationLeft[0] = equationLeft[0].substring(1, equationLeft.length - 2);
+			String newEquation = equationLeft[0] + " = " + equationRight;
+			return algebraEquations(newEquation, unknown, values, variables, answer);
+		}
 		
 		return null;
 	}
