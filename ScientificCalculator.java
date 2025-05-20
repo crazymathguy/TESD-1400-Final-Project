@@ -160,7 +160,7 @@ public class ScientificCalculator {
 			String[] dividePieces = isolatePieces(add, "/");
 			Value division = new Value(1, "", Integer.MAX_VALUE);
 			for (String divide : dividePieces) {
-				String[] multiplyPieces = isolatePieces(divide, "\\*");
+				String[] multiplyPieces = isolatePieces(divide, "*");
 				Value multiplication = new Value(1, "", Integer.MAX_VALUE);
 				for (String multiply : multiplyPieces) {
 					Value singleUnit = new Value(1, "", Integer.MAX_VALUE);
@@ -223,14 +223,16 @@ public class ScientificCalculator {
 	}
 	
 	// Manipulates equations to isolate unknowns
-	static Value algebraEquations(String equation, String unknown, Value[] values, String[] variables, Value currentValue) {
+	static Value algebraEquations(String equation, String unknown, Value[] values, String[] variables, Value answer) {
 		if (!equation.contains(unknown)) {
 			return null;
 		}
 		if (unknown == null) {
 			return null;
 		}
-		Value answer = new Value(0, "", 1);
+		if (answer == null) {
+			answer = new Value(0, "", 1);
+		}
 		String calc = "";
 		String[] pieces = isolatePieces(equation, " ");
 		String[] equationLeft = new String[pieces.length];
@@ -287,12 +289,9 @@ public class ScientificCalculator {
 			return null;
 		}
 		calc = "(" + toAlgebraString(equationRight, " + ") + ")";
-		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, currentValue);
+		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, answer);
 		equationRight = new String[equationRight.length];
 		equationRight[0] = "calc";
-		if (equationLeft[0].equals(unknown)) {
-			return answer;
-		}
 		
 		if (equationLeft[0].charAt(0) == '-') {
 			equationLeft[0] = equationLeft[0].substring(1);
@@ -300,9 +299,6 @@ public class ScientificCalculator {
 		}
 		printAlgebraEquation(equationLeft, equationRight, " + ", calc);
 		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, answer);
-		if (equationLeft[0].equals(unknown)) {
-			return answer;
-		}
 		
 		equationLeft = isolatePieces(equationLeft[0], "/");
 		if (equationLeft.length > 2) {
@@ -341,11 +337,8 @@ public class ScientificCalculator {
 				equationRight[0] = "calc";
 			}
 		}
-		if (equationLeft[0].equals(unknown)) {
-			return answer;
-		}
 		
-		equationLeft = isolatePieces(equationLeft[0], "\\*");
+		equationLeft = isolatePieces(equationLeft[0], "*");
 		String[] rightBottom = new String[equationLeft.length];
 		right = 0;
 		for (int left = 0; left < equationLeft.length; left++) {
@@ -368,9 +361,6 @@ public class ScientificCalculator {
 		answer = plugInValues(toAlgebraString(equationRight, "/"), values, variables, answer);
 		equationRight = new String[equationRight.length];
 		equationRight[0] = "calc";
-		if (equationLeft[0].equals(unknown)) {
-			return answer;
-		}
 		
 		try {
 			int i;
@@ -387,18 +377,23 @@ public class ScientificCalculator {
 			calc += Double.toString(exponent);
 			answer = plugInValues(equationRight[0], values, variables, answer);
 			equationRight[0] = "calc";
-			if (equationLeft[0].equals(unknown)) {
-				return answer;
-			}
 		} catch (Exception e) {}
 		
-		if (equationLeft[0].charAt(0) == '(') {
-			equationLeft[0] = equationLeft[0].substring(1, equationLeft.length - 2);
-			String newEquation = equationLeft[0] + " = " + equationRight;
-			return algebraEquations(newEquation, unknown, values, variables, answer);
+		if (equationLeft[0].charAt(0) == '(' && equationLeft[0].charAt(equationLeft[0].length() - 1) == ')') {
+			equationLeft[0] = equationLeft[0].substring(1, equationLeft[0].length() - 1);
+			String newEquation = equationLeft[0] + " = " + toAlgebraString(equationRight, "/").replace("calc", calc);
+			answer = algebraEquations(newEquation, unknown, values, variables, answer);
 		}
 		
-		return null;
+		int i;
+		for (i = 0; i < variables.length; i++) {
+			if (unknown.equals(variables[i])) {
+				break;
+			}
+		}
+		String[] variablesUnits = {"m", "m", "m", "m/s", "m/s", "m/s", "m/s", "s", "m/s*s"};
+		answer.units = variablesUnits[i];
+		return answer;
 	}
 	
 	// Print an equation
@@ -408,7 +403,12 @@ public class ScientificCalculator {
 	
 	// Split an equation into algebraic pieces
 	static String[] isolatePieces(String equation, String delimiter) {
-		String[] separateBySpace = equation.split(delimiter);
+		String[] separateBySpace;
+		if (delimiter.equals("*")) {
+			separateBySpace = equation.split("\\*");
+		} else {
+			separateBySpace = equation.split(delimiter);
+		}
 		String currentPiece = "";
 		String[] pieces = new String[separateBySpace.length];
 		int parentheses = 0;
@@ -473,7 +473,7 @@ public class ScientificCalculator {
 	static String toAlgebraString(String[] expression, String delimiter) {
 		String returnString = expression[0];
 		for (int index = 1; index < expression.length; index++) {
-			if (expression[index] == null) {
+			if (expression[index] == null || expression[index].equals("")) {
 				continue;
 			}
 			returnString += delimiter + expression[index];
