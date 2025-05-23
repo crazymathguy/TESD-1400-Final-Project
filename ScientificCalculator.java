@@ -45,34 +45,41 @@ public class ScientificCalculator {
 		return output;
 	}
 	
-	public static void singleConversion() {
+	static void singleConversion() {
 		String[] input = getUserInputLine("Enter a value and a unit to convert it to\n(separated by a space: eg. 4.5mi m)");
 		if (input.length == 2) {
 			Value inputValue = Value.getValue(input[0], true);
-			if (inputValue == null) {
-				System.out.print("Invalid known value");
+			Value convertedValue = convertUnits(inputValue, input[1]);
+			if (convertedValue.isValid()) {
+				printConversionEquation(inputValue, convertedValue,
+					getUserInput("Print with significant figures? (y/n)").equals("y"));
 			} else {
-				Value unitDef = inputValue.getUnitDefinition();
-				Value siValue = new Value(inputValue.value * unitDef.value, unitDef.units, Math.min(inputValue.sigFigs, unitDef.sigFigs));
-				Value unitToConvert = Value.getUnitDefinition(input[1], inputValue.sigFigs);
-				if (unitToConvert == null) {
-					System.out.print("Invalid unknown value");
-				} else {
-					if (siValue.units.equals(unitToConvert.units)) {
-						Value convertedValue = new Value(siValue.value / unitToConvert.value, input[1], Math.min(siValue.sigFigs, unitToConvert.sigFigs));
-						if (convertedValue.isValid()) {
-							printConversionEquation(inputValue, convertedValue, true);
-						} else {
-							System.out.print("Something went wrong, please try again.");
-						}
-					} else {
-						System.out.print("Incompatible units");
-					}
-				}
+				System.out.print("Something went wrong, please try again.");
 			}
 		} else {
 			System.out.print("Invalid equation");
 		}
+	}
+	
+	static Value convertUnits(Value inputValue, String convertUnit) {
+		Value convertedValue = null;
+		if (inputValue == null) {
+			System.out.print("Invalid known value");
+		} else {
+			Value unitDef = inputValue.getUnitDefinition();
+			Value siValue = new Value(inputValue.value * unitDef.value, unitDef.units, Math.min(inputValue.sigFigs, unitDef.sigFigs));
+			Value unitToConvert = Value.getUnitDefinition(convertUnit, inputValue.sigFigs);
+			if (unitToConvert == null) {
+				System.out.print("Invalid unknown value");
+			} else {
+				if (siValue.units.equals(unitToConvert.units)) {
+					convertedValue = new Value(siValue.value / unitToConvert.value, convertUnit, Math.min(siValue.sigFigs, unitToConvert.sigFigs));
+				} else {
+					System.out.print("Incompatible units");
+				}
+			}
+		}
+		return convertedValue;
 	}
 	
 	// Manipulates motion data
@@ -103,8 +110,12 @@ public class ScientificCalculator {
 				if (field.equals("")) {
 					values[i] = null;
 				} else {
-					values[i] = Value.getValue(field, true);
+					Value thisValue = Value.getValue(field, true);
+					values[i] = thisValue.getUnitDefinition();
+					values[i].value *= thisValue.value;
 					if (values[i] != null) {
+						values[i].printValue(false);
+						System.out.println();
 						variablesUsed |= (1 << i);
 					}
 				}
@@ -256,7 +267,7 @@ public class ScientificCalculator {
 			}
 			index++;
 		}
-		printAlgebraEquation(equationLeft, equationRight, " + ", "");
+		printAlgebraEquation(equationLeft, equationRight, " ", "");
 		
 		if (!unknownLeft) {
 			String[] temp = equationLeft;
@@ -282,13 +293,13 @@ public class ScientificCalculator {
 			right++;
 		}
 		equationLeft = fixEmptyString(equationLeft);
-		printAlgebraEquation(equationLeft, equationRight, " + ", "");
+		printAlgebraEquation(equationLeft, equationRight, " ", "");
 		
 		if (equationLeft.length > 1) {
 			System.out.println("Cannot handle multiple unknowns yet");
 			return null;
 		}
-		calc = "(" + toAlgebraString(equationRight, " + ") + ")";
+		calc = "(" + toAlgebraString(equationRight, " ") + ")";
 		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, answer);
 		equationRight = new String[equationRight.length];
 		equationRight[0] = "calc";
@@ -297,7 +308,7 @@ public class ScientificCalculator {
 			equationLeft[0] = equationLeft[0].substring(1);
 			equationRight[0] = '-' + equationRight[0];
 		}
-		printAlgebraEquation(equationLeft, equationRight, " + ", calc);
+		printAlgebraEquation(equationLeft, equationRight, " ", calc);
 		answer = plugInValues(toAlgebraString(equationRight, " "), values, variables, answer);
 		
 		equationLeft = isolatePieces(equationLeft[0], "/");
@@ -341,6 +352,7 @@ public class ScientificCalculator {
 		equationLeft = isolatePieces(equationLeft[0], "*");
 		String[] rightBottom = new String[equationLeft.length];
 		right = 0;
+		boolean notUnknown = false;
 		for (int left = 0; left < equationLeft.length; left++) {
 			String switchPiece = equationLeft[left];
 			if (switchPiece == null) {
@@ -349,18 +361,21 @@ public class ScientificCalculator {
 			if (switchPiece.contains(unknown)) {
 				continue;
 			}
+			notUnknown = true;
 			equationLeft[left] = null;
 			rightBottom[right] = switchPiece;
 			right++;
 		}
-		equationRight[1] = "(" + toAlgebraString(rightBottom, "*") + ")";
-		equationLeft = fixEmptyString(equationLeft);
-		printAlgebraEquation(equationLeft, equationRight, "/", calc);
-		
-		calc = "(" + toAlgebraString(equationRight, "/").replace("calc", calc) + ")";
-		answer = plugInValues(toAlgebraString(equationRight, "/"), values, variables, answer);
-		equationRight = new String[equationRight.length];
-		equationRight[0] = "calc";
+		if (notUnknown) {
+			equationRight[1] = "(" + toAlgebraString(rightBottom, "*") + ")";
+			equationLeft = fixEmptyString(equationLeft);
+			printAlgebraEquation(equationLeft, equationRight, "/", calc);
+			
+			calc = "(" + toAlgebraString(equationRight, "/").replace("calc", calc) + ")";
+			answer = plugInValues(toAlgebraString(equationRight, "/"), values, variables, answer);
+			equationRight = new String[equationRight.length];
+			equationRight[0] = "calc";
+		}
 		
 		try {
 			int i;

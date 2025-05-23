@@ -64,6 +64,7 @@ public class Value {
 	
 	// Check whether the inputted Value has a valid (currently supported) unit
 	public static boolean isValidUnit(String tryUnit) {
+		
 		return !(getUnitDefinition(tryUnit, 1) == null);
 	}
 	
@@ -71,8 +72,11 @@ public class Value {
 		return getUnitDefinition(this.units, this.sigFigs);
 	}
 	
-	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in 5 pounds)
+	// returns the SI definition of a given unit (eg. how many meters in a mile, how many grams in a pound)
 	public static Value getUnitDefinition(String units, int origSigFigs) {
+		if (units == null) {
+			return null;
+		}
 		units.replace('u', 'μ');
 		if (!(units.contains("/") || units.contains("*"))) {
 			return getSingleUnitDefinition(units, origSigFigs);
